@@ -1,0 +1,20 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Snowbreak_Rusifikator.App"
+             xmlns:local="using:Snowbreak_Rusifikator"
+             RequestedThemeVariant="Light">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+      <FluentTheme>
+        <FluentTheme.Palettes>
+          <ColorPaletteResources x:Key="Light" Accent="#ff5f5bcc" AltHigh="White" AltLow="White" AltMedium="White" AltMediumHigh="White" AltMediumLow="White" BaseHigh="Black" BaseLow="#ffbebeff" BaseMedium="#ff797dbf" BaseMediumHigh="#ff4b5295" BaseMediumLow="#ff6268aa" ChromeAltLow="#ff4b5295" ChromeBlackHigh="Black" ChromeBlackLow="#ffbebeff" ChromeBlackMedium="#ff4b5295" ChromeBlackMediumLow="#ff797dbf" ChromeDisabledHigh="#ffbebeff" ChromeDisabledLow="#ff797dbf" ChromeGray="#ff6268aa" ChromeHigh="#ffbebeff" ChromeLow="#ffe6e6ff" ChromeMedium="#ffdedeff" ChromeMediumLow="#ffe6e6ff" ChromeWhite="White" ListLow="#ffdedeff" ListMedium="#ffbebeff" RegionColor="#fffef6ff" />
+          <ColorPaletteResources x:Key="Dark" Accent="#ff8961cc" AltHigh="Black" AltLow="Black" AltMedium="Black" AltMediumHigh="Black" AltMediumLow="Black" BaseHigh="White" BaseLow="#ff64576b" BaseMedium="#ffb6aabc" BaseMediumHigh="#ffcbbfd0" BaseMediumLow="#ff8d8193" ChromeAltLow="#ffcbbfd0" ChromeBlackHigh="Black" ChromeBlackLow="#ffcbbfd0" ChromeBlackMedium="Black" ChromeBlackMediumLow="Black" ChromeDisabledHigh="#ff64576b" ChromeDisabledLow="#ffb6aabc" ChromeGray="#ffa295a8" ChromeHigh="#ffa295a8" ChromeLow="#ff332041" ChromeMedium="#ff3f2e4b" ChromeMediumLow="#ff584960" ChromeWhite="White" ListLow="#ff3f2e4b" ListMedium="#ff64576b" RegionColor="#ff262738" />
+        </FluentTheme.Palettes>
+      </FluentTheme>
+    </Application.Styles>
+</Application>
