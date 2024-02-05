@@ -40,38 +40,39 @@
     </Grid>
 
     <!-- Середина - Изображение -->
+    <StackPanel Grid.Row="1" Background="Black" OpacityMask="Black" Opacity=".3"></StackPanel>
     <Grid Grid.Row="1"
           ColumnDefinitions="*" RowDefinitions="*" ShowGridLines="False" >
       <Image Source="/Assets/Images/logo.png"/>
     </Grid>
 
     <!-- Середина - Кнопки -->
+    <StackPanel Grid.Row="2" Background="Black" OpacityMask="Black" Opacity=".3"></StackPanel>
     <Grid Grid.Row="2"
           ColumnDefinitions="*" HorizontalAlignment="Center" ShowGridLines="False">
       <StackPanel Grid.Column="1">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="2">
           <TextBox Watermark="Путь до папки игры" Width="300" Classes="Input"/>
-          <Button Name="selectPathButton" Click="SelectPathButton_Click" Content="..."/>
+          <Button Name="selectPathButton" Click="SelectPathButton_Click" Cursor="Hand" Content="..."/>
         </StackPanel>
-
-        <StackPanel Margin="10,0" HorizontalAlignment="Right">
-          <CheckBox Name="testerCheckbox" Click="TesterCheckbox_Click" FontWeight="Medium" Content="Tester"/>
-        </StackPanel>
-
+        <!---->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
-          <Button Name="installRemoveButton" Click="InstallRemoveButton_Click" Margin="4" Content="Установить перевод"/>
-          <Button Name="checkUpdatesButton" Click="CheckUpdatesButton_Click" Margin="4" Content="Проверить обновления"/>
+          <Button Name="installRemoveButton" Click="InstallRemoveButton_Click" Margin="4" Cursor="Hand" Content="Установить перевод"/>
+          <Button Name="checkInstallUpdatesButton" Click="CheckInstallUpdatesButton_Click" Margin="4" IsEnabled="False" Cursor="Hand" Content="Скачать обновление"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
-          <Button Name="startLauncherButton" Click="StartLauncherButton_Click" Margin="4" IsEnabled="False" Content="Запустить лаунчер"/>
+          <Button Name="startLauncherButton" Click="StartLauncherButton_Click" Margin="4" IsEnabled="False" Cursor="Hand" Content="Запустить лаунчер"/>
         </StackPanel>
       </StackPanel>
     </Grid>
 
     <!-- Статус бар -->
-
-    <StackPanel Grid.Row="3">
+    <StackPanel Grid.Row="3" Background="DarkGray" OpacityMask="Black" Opacity=".7"></StackPanel>
+    <StackPanel Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center">
       <TextBlock Text="Статус" Margin="2"/>
+    </StackPanel>
+    <StackPanel Grid.Row="3" Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+      <CheckBox Name="testerCheckbox" Click="TesterCheckbox_Click" FontWeight="Medium" Foreground="DarkBlue" Cursor="Hand" Content="Tester"/>
     </StackPanel>
   </Grid>
 

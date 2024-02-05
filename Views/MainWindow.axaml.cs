@@ -1,6 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Versioning;
 
@@ -32,10 +35,13 @@ public partial class MainWindow : Window
 
 
     //private async void test(object? sender, Avalonia.Interactivity.RoutedEventArgs e) { }
-    private void SelectPathButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void SelectPathButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        //OpenFileDialog
+        IStorageProvider storage = StorageProvider;
+        await Models.MainModel.SelectGameFlder(storage);
     }
+
+    //MyTextInput.AddHandler(TextInputEvent, MyTextInput_InputHandler, RoutingStrategies.Tunnel);
 
     private async void TesterCheckbox_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
@@ -49,16 +55,23 @@ public partial class MainWindow : Window
     private void InstallRemoveButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         installRemoveButton.IsEnabled = false;
+        //if проверка конфига на наличие установленой версии
         Models.MainModel.StartUpdate();
+        // изменить имя на Удалить перевод
         installRemoveButton.IsEnabled = true;
     }
 
-    private void CheckUpdatesButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void CheckInstallUpdatesButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
+        checkInstallUpdatesButton.IsEnabled = false;
+        //
+        checkInstallUpdatesButton.IsEnabled = true;
     }
 
     private void StartLauncherButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        //
+        startLauncherButton.IsEnabled = false;
+        Models.MainModel.RunLauncher();
+        startLauncherButton.IsEnabled = true;
     }
 }

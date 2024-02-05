@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using static Snowbreak_Rusifikator.IConfigs;
 using System.Runtime.Versioning;
+using Avalonia.Platform.Storage;
 
 namespace Snowbreak_Rusifikator.Models
 {
@@ -23,8 +24,6 @@ namespace Snowbreak_Rusifikator.Models
         [SupportedOSPlatform("windows")]
         public static async void StartUpdate()
         {
-            Debug.WriteLine(isTester);
-
             await AutoDetectingGamePathAsync(programConfig, programConfigPath);
         }
 
@@ -46,7 +45,21 @@ namespace Snowbreak_Rusifikator.Models
 
         public static void RunLauncher() 
         {
-            //
+            if (programConfig.launcherPath != "") 
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo(programConfig.launcherPath);
+                Process.Start(startInfo);
+            }
+        }
+
+        public static async Task SelectGameFlder(IStorageProvider storage)
+        {
+            IReadOnlyList<IStorageFolder> folder = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
+            if (folder.Count > 0) 
+            {
+                programConfig.gamePath = folder[0].TryGetLocalPath();
+                await SaveProgramConfig(programConfig, programConfigPath);
+            }
         }
 
         static async Task AutoDetectingGamePathAsync(ProgramConfig programConfig, string programConfigPath)
