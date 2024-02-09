@@ -52,14 +52,10 @@ namespace Snowbreak_Rusifikator.Models
             }
         }
 
-        public static async Task SelectGameFlder(IStorageProvider storage)
+        public static async Task GetGameFolder(IReadOnlyList<IStorageFolder> folder)
         {
-            IReadOnlyList<IStorageFolder> folder = await storage.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
-            if (folder.Count > 0) 
-            {
-                programConfig.gamePath = folder[0].TryGetLocalPath();
-                await SaveProgramConfig(programConfig, programConfigPath);
-            }
+            programConfig.gamePath = folder[0].TryGetLocalPath();
+            await SaveProgramConfig(programConfig, programConfigPath);
         }
 
         static async Task AutoDetectingGamePathAsync(ProgramConfig programConfig, string programConfigPath)
@@ -149,7 +145,7 @@ namespace Snowbreak_Rusifikator.Models
             }
             finally
             {
-                Trace.WriteLine("Файл конфига существует.");
+                Trace.WriteLine("Конфиг загружен.");
             }
             return programConfig;
         }

@@ -26,7 +26,7 @@
   <Window.Background>
     <ImageBrush Opacity="1" Stretch="UniformToFill" Source="/Assets/Images/page_bg_raw.jpg"/>
   </Window.Background>
-  
+
   <!-- База -->
   <Grid RowDefinitions="Auto, *, *, 0.2*"
           Classes="Wrapper" ShowGridLines="False">
@@ -34,8 +34,8 @@
     <!-- <Panel Height="30" Grid.Row="0"> -->
     <Grid Grid.Row="0"
       ColumnDefinitions="*, 27" Background="Black" Opacity="0.7">
-      <Button Grid.Column="1" Name="closeButton" Click="ButtonClose_Click" HorizontalAlignment="Right" Focusable="False" Content="X"/>
-      <Button Grid.Column="0" Name="minimizeButton" Click="ButtonMinimize_Click" HorizontalAlignment="Right" Focusable="False" Content="_"></Button>
+      <Button Grid.Column="1" Name="closeButton" Command="{Binding ButtonClose_Command}" HorizontalAlignment="Right" Focusable="False" Background="#201e21" Foreground="White" Content="X"/>
+      <Button Grid.Column="0" Name="minimizeButton" Command="{Binding ButtonMinimize_Command}" HorizontalAlignment="Right" Focusable="False" Background="#201e21" Foreground="White" Content="_"></Button>
       <TextBlock Foreground="White" Margin="5" HorizontalAlignment="Center" Text="Русификатор Snowbreak"/>
     </Grid>
 
@@ -49,11 +49,20 @@
     <!-- Середина - Кнопки -->
     <StackPanel Grid.Row="2" Background="Black" OpacityMask="Black" Opacity=".3"></StackPanel>
     <Grid Grid.Row="2"
-          ColumnDefinitions="*" HorizontalAlignment="Center" ShowGridLines="False">
+          ColumnDefinitions="*" HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False">
       <StackPanel Grid.Column="1">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="2">
-          <TextBox Watermark="Путь до папки игры" Width="300" Classes="Input"/>
-          <Button Name="selectPathButton" Click="SelectPathButton_Click" Cursor="Hand" Content="..."/>
+          <TextBox Watermark="Путь до папки игры" Width="300" Classes="Input" Text=""/>
+          <Button Name="selectPathButton" Command="{Binding SelectGameFolder_Command}" Cursor="Hand" Content="..."/>
+        </StackPanel>
+        <!---->
+        <StackPanel Margin="10">
+          <TextBox Margin="0 5" Text="{Binding Message}"
+                   Watermark="Add a message to enable the button"/>
+          <Button Command="{Binding ExampleCommand}">
+            Run the example
+          </Button>
+          <TextBlock Margin="0 5" Text="{Binding Output}" />
         </StackPanel>
         <!---->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
@@ -69,10 +78,10 @@
     <!-- Статус бар -->
     <StackPanel Grid.Row="3" Background="DarkGray" OpacityMask="Black" Opacity=".7"></StackPanel>
     <StackPanel Grid.Row="3" HorizontalAlignment="Left" VerticalAlignment="Center">
-      <TextBlock Text="Статус" Margin="2"/>
+      <TextBlock Text="Статус" Margin="2" Padding="3"/>
     </StackPanel>
     <StackPanel Grid.Row="3" Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-      <CheckBox Name="testerCheckbox" Click="TesterCheckbox_Click" FontWeight="Medium" Foreground="DarkBlue" Cursor="Hand" Content="Tester"/>
+      <CheckBox Name="testerCheckbox" Click="TesterCheckbox_Click" Padding="5" FontWeight="Medium" FontSize="15" Foreground="#03444a" Cursor="Hand" Content="Tester"/>
     </StackPanel>
   </Grid>
 
