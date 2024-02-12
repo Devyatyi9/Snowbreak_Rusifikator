@@ -17,6 +17,10 @@ namespace Snowbreak_Rusifikator.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    #region [Properties]
+    [ObservableProperty]
+    private string installRemoveButtonContent = @"/..\";
+
     [ObservableProperty]
     private bool isInstallRemoveButtonEnabled = false;
     [ObservableProperty]
@@ -30,13 +34,28 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool isTesterCheckboxChecked = false;
 
     [ObservableProperty]
-    private string status = "Статус";
+    public string status = string.Empty;
+    #endregion
 
     public MainWindowViewModel()
     {
+        status = "Загрузка...";
         Models.MainModel.BaseProgramConfig();
         isTesterCheckboxChecked = Models.MainModel.isTester;
-        //status = "Загрузка...";
+        if (Models.MainModel.programConfig.fileName != "")
+        {
+            installRemoveButtonContent = "Удалить перевод";
+            isCheckInstallUpdatesButtonEnabled = true;
+        } else { installRemoveButtonContent = "Установить перевод"; }
+        if (Models.MainModel.programConfig.gamePath != "")
+        {
+            isInstallRemoveButtonEnabled = true;
+        }
+        if (Models.MainModel.programConfig.launcherPath != "")
+        {
+            isStartLauncherButtonEnabled = true;
+        }
+        status = "Готово";
     }
 
     //{Binding SelectGameFolderCommand}
@@ -44,6 +63,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task SelectGameFolder()
     {
     }
+
+    private async void InstallRemove() { }
+
+    private async void CheckInstallUpdates() { }
+
+    //{Binding StartLauncherCommand}
+    //[RelayCommand]
+    private async void StartLauncher() { }
 
     //{Binding TesterCheckboxCommand}
     //[RelayCommand]
@@ -57,9 +84,4 @@ public partial class MainWindowViewModel : ViewModelBase
         //testerCheckbox.IsEnabled = true;
     }
 
-    //
-    
-#pragma warning disable CA1822 // Mark members as static
-
-#pragma warning restore CA1822 // Mark members as static
 }

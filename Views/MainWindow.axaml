@@ -55,7 +55,7 @@
         </StackPanel>
         <!---->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
-          <Button Name="installRemoveButton" Click="InstallRemoveButton_Click" IsEnabled="{Binding IsInstallRemoveButtonEnabled}" Margin="4" Cursor="Hand" Content="Установить перевод"/>
+          <Button Name="installRemoveButton" Click="InstallRemoveButton_Click" IsEnabled="{Binding IsInstallRemoveButtonEnabled}" Margin="4" Cursor="Hand" Content="{Binding InstallRemoveButtonContent}"/>
           <Button Name="checkInstallUpdatesButton" Click="CheckInstallUpdatesButton_Click" IsEnabled="{Binding IsCheckInstallUpdatesButtonEnabled}" Margin="4" Cursor="Hand" Content="Скачать обновление"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">

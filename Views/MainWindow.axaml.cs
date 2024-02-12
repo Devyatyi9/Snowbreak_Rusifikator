@@ -28,16 +28,11 @@ public partial class MainWindow : Window
     }
 
     private void ButtonClose_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        Close();
-    }
+    { Close(); }
 
     private void ButtonMinimize_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
-    }
+    { WindowState = WindowState.Minimized; }
 
-    //private async void test(object? sender, Avalonia.Interactivity.RoutedEventArgs e) { }
     private async void SelectPathButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var topLevel = TopLevel.GetTopLevel(this);

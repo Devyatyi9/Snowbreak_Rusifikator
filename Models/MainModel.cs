@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using static Snowbreak_Rusifikator.IConfigs;
 using System.Runtime.Versioning;
 using Avalonia.Platform.Storage;
+using Snowbreak_Rusifikator.ViewModels;
 
 namespace Snowbreak_Rusifikator.Models
 {
@@ -18,7 +19,7 @@ namespace Snowbreak_Rusifikator.Models
     {
         static public bool isTester { get; set; }
         static protected string programConfigPath;
-        static protected ProgramConfig programConfig;
+        static public ProgramConfig programConfig;
         static HttpClient Client = new();
 
         [SupportedOSPlatform("windows")]
