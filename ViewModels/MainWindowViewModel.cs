@@ -1,99 +1,65 @@
-﻿using Avalonia.Platform.Storage;
-using ReactiveUI;
+using Avalonia.Platform.Storage;
 using Avalonia.Controls;
 using System.Diagnostics;
-using System.Reactive;
 using System;
 using static Snowbreak_Rusifikator.IConfigs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Reactive.Linq;
 using Snowbreak_Rusifikator.Models;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia;
 using Snowbreak_Rusifikator.Views;
+using System.Linq;
+using Avalonia.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Snowbreak_Rusifikator.ViewModels;
 
-public class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : ViewModelBase
 {
-    public IStorageProvider? provider;
+    [ObservableProperty]
+    private bool isInstallRemoveButtonEnabled = false;
+    [ObservableProperty]
+    private bool isCheckInstallUpdatesButtonEnabled = false;
+    [ObservableProperty]
+    private bool isStartLauncherButtonEnabled = false;
 
-    //var window = TopLevel.GetTopLevel(Views.MainWindow);
-    private string _message = string.Empty;
-    private string _testmessage = string.Empty;
-    private string _output = Models.MainModel.isTester.ToString();
-    //private string _output = "Waiting...";
+    [ObservableProperty]
+    private bool isTesterCheckboxEnabled = true;
+    [ObservableProperty]
+    private bool isTesterCheckboxChecked = false;
 
-    public string Message
-    {
-        get => _message;
-        set => this.RaiseAndSetIfChanged(ref _message, value);
-    }
-
-    public string Output
-    {
-        get => _output;
-        set => this.RaiseAndSetIfChanged(ref _output, value);
-    }
-
-    public ReactiveCommand<Unit, Unit> ExampleCommand { get; }
-    public ReactiveCommand<Unit, Unit> SelectFolderDialog {  get; }
+    [ObservableProperty]
+    private string status = "Статус";
 
     public MainWindowViewModel()
     {
-        IObservable<bool> isValidObservable = this.WhenAnyValue(
-            x => x.Message,
-            x => !string.IsNullOrWhiteSpace(x) && x.Length > 7);
-        ExampleCommand = ReactiveCommand.Create(PerformAction,
-                                                isValidObservable);
-        //SelectFolderDialog = ReactiveCommand.Create(SelectGameFlder);
+        Models.MainModel.BaseProgramConfig();
+        isTesterCheckboxChecked = Models.MainModel.isTester;
+        //status = "Загрузка...";
     }
 
-    private void PerformAction()
+    //{Binding SelectGameFolderCommand}
+    //[RelayCommand]
+    private async Task SelectGameFolder()
     {
-        Output = $"The action was called. {_message}";
-        Message = String.Empty;
     }
+
+    //{Binding TesterCheckboxCommand}
+    //[RelayCommand]
+    private async void TesterCheckbox()
+    {
+        //var topLevel = TopLevel.GetTopLevel(this);
+        //testerCheckbox.IsEnabled = false;
+        //Models.MainModel.isTester = (bool)testerCheckbox.IsChecked;
+        //await Models.MainModel.ChangeTesterState();
+        ////Models.MainModel.StartUpdate();
+        //testerCheckbox.IsEnabled = true;
+    }
+
     //
-
-    public string TestMessage
-    {
-        get => _testmessage;
-        set => this.RaiseAndSetIfChanged(ref _testmessage, value);
-    }
-
-    public void ButtonClose_Command()
-    {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
-            desktop.MainWindow?.IsActive is not { } parent)
-            throw new NullReferenceException("Missing MainWindow instance.");
-        desktop.MainWindow?.Close();
-    }
-    public void ButtonMinimize_Command()
-    {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
-            desktop.MainWindow?.IsActive is not { } window)
-            throw new NullReferenceException("Missing MainWindow instance.");
-        desktop.MainWindow.WindowState = WindowState.Minimized;
-    }
-
-    public async Task SelectGameFolder_Command()
-    {
-        // See IoCFileOps project for an example of how to accomplish this.
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
-            desktop.MainWindow?.StorageProvider is not { } provider)
-            throw new NullReferenceException("Missing StorageProvider instance.");
-        IReadOnlyList<IStorageFolder> folder = await provider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
-        if (folder.Count == 1)
-        {
-            await MainModel.GetGameFolder(folder);
-        }
-    }
-
-
+    
 #pragma warning disable CA1822 // Mark members as static
 
 #pragma warning restore CA1822 // Mark members as static
-    //Models.MainModel MainModel { get; set; }
 }

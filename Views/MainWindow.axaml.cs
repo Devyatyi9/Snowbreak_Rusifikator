@@ -3,14 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
-using ReactiveUI;
 using Snowbreak_Rusifikator.Models;
 using Snowbreak_Rusifikator.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reactive;
 using System.Reflection.PortableExecutable;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
@@ -21,41 +19,39 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-        var topLevel = TopLevel.GetTopLevel(this);
         InitializeComponent();
-        Models.MainModel.BaseProgramConfig();
         PointerPressed += (_, e) =>
         {
             if ((WindowState == WindowState.Normal) || (WindowState == WindowState.Maximized))
                 BeginMoveDrag(e);
         };
     }
-    // Text="{Binding $self}"
 
+    private void ButtonClose_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Close();
+    }
+
+    private void ButtonMinimize_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
 
     //private async void test(object? sender, Avalonia.Interactivity.RoutedEventArgs e) { }
     private async void SelectPathButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        //var topLevel = TopLevel.GetTopLevel(control);
-        //IStorageProvider storage = StorageProvider;
-        //await Models.MainModel.SelectGameFolder(storage);
-    }
-
-    public async Task SelectGameFolderTest_Command()
-    {
-        //var topLevel = TopLevel.GetTopLevel(this);
-        IReadOnlyList<IStorageFolder> folder = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
+        var topLevel = TopLevel.GetTopLevel(this);
+        IReadOnlyList<IStorageFolder> folder = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Р’С‹Р±РµСЂРёС‚Рµ РїР°РїРєСѓ РёРіСЂС‹", AllowMultiple = false });
         if (folder.Count == 1)
         {
             await MainModel.GetGameFolder(folder);
         }
     }
-
     //MyTextInput.AddHandler(TextInputEvent, MyTextInput_InputHandler, RoutingStrategies.Tunnel);
 
     private async void TesterCheckbox_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        var topLevel = TopLevel.GetTopLevel(this);
+        //var topLevel = TopLevel.GetTopLevel(this);
         testerCheckbox.IsEnabled = false;
         Models.MainModel.isTester = (bool)testerCheckbox.IsChecked;
         await Models.MainModel.ChangeTesterState();
@@ -63,12 +59,12 @@ public partial class MainWindow : Window
         testerCheckbox.IsEnabled = true;
     }
 
-    private void InstallRemoveButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void InstallRemoveButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         installRemoveButton.IsEnabled = false;
-        //if проверка конфига на наличие установленой версии
+        //if РїСЂРѕРІРµСЂРєР° РєРѕРЅС„РёРіР° РЅР° РЅР°Р»РёС‡РёРµ СѓСЃС‚Р°РЅРѕРІР»РµРЅРѕР№ РІРµСЂСЃРёРё
         Models.MainModel.StartUpdate();
-        // изменить имя на Удалить перевод
+        // РёР·РјРµРЅРёС‚СЊ РёРјСЏ РЅР° РЈРґР°Р»РёС‚СЊ РїРµСЂРµРІРѕРґ
         installRemoveButton.IsEnabled = true;
     }
 
@@ -79,7 +75,7 @@ public partial class MainWindow : Window
         checkInstallUpdatesButton.IsEnabled = true;
     }
 
-    private void StartLauncherButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void StartLauncherButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         startLauncherButton.IsEnabled = false;
         Models.MainModel.RunLauncher();

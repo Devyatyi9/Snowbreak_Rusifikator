@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -124,6 +124,7 @@ namespace Snowbreak_Rusifikator.Models
                     IConfigs.ProgramConfig? jsonContent = JsonSerializer.Deserialize<IConfigs.ProgramConfig>(jsonText);
                     Trace.WriteLine(value: $"Config game path: {jsonContent.gamePath}");
                     programConfig = jsonContent;
+                    MainModel.isTester = programConfig.isTester;
                 }
                 else
                 {
