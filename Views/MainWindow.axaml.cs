@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Snowbreak_Rusifikator.Models;
@@ -40,8 +41,10 @@ public partial class MainWindow : Window
         IReadOnlyList<IStorageFolder> folder = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
         if (folder.Count == 1)
         {
-            await new ViewModels.MainWindowViewModel().SelectGameFolder(folder);
+            //await new ViewModels.MainWindowViewModel().SelectGameFolder(folder);
             StatusBar.Text = "Настройки сохранены";
+            await Task.Delay(500);
+            StatusBar.Text = string.Empty;
             // await ViewModels.MainWindowViewModel.SelectGameFolder(folder);
             // new MainWindowViewModel().SelectGameFolderCommand(folder);
         }

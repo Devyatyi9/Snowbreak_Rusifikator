@@ -65,24 +65,30 @@ public partial class MainWindowViewModel : ViewModelBase
         Status = "Готово";
     }
 
-    private void Testing()
-    {
-        
-    }
-
     //{Binding SelectGameFolderCommand}
-    //[RelayCommand]
-    public async Task SelectGameFolder(IReadOnlyList<IStorageFolder> folder) // static public
+    [RelayCommand]
+    private async Task SelectGameFolder()
     {
-        await MainModel.GetGameFolder(folder);
-        if (Models.MainModel.programConfig.gamePath != "")
+        // See IoCFileOps project for an example of how to accomplish this.
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
+            desktop.MainWindow?.StorageProvider is not { } provider)
+            throw new NullReferenceException("Missing StorageProvider instance.");
+        IReadOnlyList<IStorageFolder> folder = await provider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
+        if (folder.Count == 1)
         {
-            IsInstallRemoveButtonEnabled = true;
-            SelectPathTextBoxContent = Models.MainModel.programConfig.gamePath;
-        }
-        if (Models.MainModel.programConfig.launcherPath != "")
-        {
-            IsStartLauncherButtonEnabled = true;
+            await MainModel.GetGameFolder(folder);
+            Status = "Настройки сохранены";
+            if (Models.MainModel.programConfig.gamePath != "")
+            {
+                IsInstallRemoveButtonEnabled = true;
+                SelectPathTextBoxContent = Models.MainModel.programConfig.gamePath;
+            }
+            if (Models.MainModel.programConfig.launcherPath != "")
+            {
+                IsStartLauncherButtonEnabled = true;
+            }
+            await Task.Delay(500);
+            Status = string.Empty;
         }
     }
 
@@ -96,6 +102,7 @@ public partial class MainWindowViewModel : ViewModelBase
             // Remove
             Models.MainModel.RemoveFile();
             InstallRemoveButtonContent = "Установить перевод";
+            IsCheckInstallUpdatesButtonEnabled = false;
         } else {
             // Install
             Models.MainModel.StartUpdate();
