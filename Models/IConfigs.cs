@@ -2,26 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 
 namespace Snowbreak_Rusifikator
 {
     public interface IConfigs
     {
-        public class ProgramConfig
+        public class ProgramConfig : DefaultJsonTypeInfoResolver
         {
             //\game\Game\Content\Paks
-            public required string gamePath { get; set; }
-            public required string launcherPath { get; set; }
-            public required string fileName { get; set; }
+            public string gamePath { get; set; }
+            public string launcherPath { get; set; }
+            public string fileName { get; set; }
             public bool isTester { get; set; }
-            public required string sha { get; set; }
+            public string sha { get; set; }
         }
-        public class JsonGamePreference
+        public class JsonGamePreference : DefaultJsonTypeInfoResolver
         {
-            public required string dataPath { get; set; }
+            public string dataPath { get; set; }
             public bool enableSpeedLimit { get; set; }
-            public required string lang { get; set; }
+            public string lang { get; set; }
             public ushort maxDownloadSpeed { get; set; }
         }
     }

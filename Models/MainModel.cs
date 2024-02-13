@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,8 @@ using static Snowbreak_Rusifikator.IConfigs;
 using System.Runtime.Versioning;
 using Avalonia.Platform.Storage;
 using Snowbreak_Rusifikator.ViewModels;
+using Avalonia.Data;
+using System.Text.Json.Serialization;
 
 namespace Snowbreak_Rusifikator.Models
 {
@@ -27,7 +30,7 @@ namespace Snowbreak_Rusifikator.Models
         {
             await AutoDetectingGamePathAsync(programConfig, programConfigPath);
         }
-
+        
         public static async Task BaseProgramConfig() 
         {
             // https://learn.microsoft.com/ru-ru/dotnet/api/system.environment.specialfolder
@@ -57,6 +60,12 @@ namespace Snowbreak_Rusifikator.Models
         {
             programConfig.gamePath = folder[0].TryGetLocalPath();
             await SaveProgramConfig(programConfig, programConfigPath);
+        }
+
+        public static Task RemoveFile()
+        {
+            InternalRemoveFile(programConfig, programConfigPath);
+            return Task.CompletedTask;
         }
 
         static async Task AutoDetectingGamePathAsync(ProgramConfig programConfig, string programConfigPath)
@@ -100,8 +109,8 @@ namespace Snowbreak_Rusifikator.Models
                 // Функция скачивания и сохранения
                 await DownloadAndSaveFileAsync(repositoryFiles, programConfig, client, programConfigPath);
             }
-            else { Trace.WriteLine("Нет обновлений."); }
-        }
+            else { Trace.WriteLine("Нет обновлений."); } //ModelStatus("Нет обновлений");
+            }
 
         static async Task<ProgramConfig> CreateLoadProgramConfig(string programConfigPath)
         {
@@ -136,9 +145,6 @@ namespace Snowbreak_Rusifikator.Models
                         createFile.Close();
                     }
                     await SaveProgramConfig(programConfig, programConfigPath);
-                    //var fs3 = FileSystem.Dir(ProgramConfigPath);
-                    //programConfigInfo.CreateText("test.txt");
-                    //programConfigInfo.CreateText().WriteLine();
                 }
             }
             catch (Exception e)
@@ -172,6 +178,7 @@ namespace Snowbreak_Rusifikator.Models
             string jsonString = JsonSerializer.Serialize(programConfig);
             File.WriteAllText(programConfigPath, jsonString);
             Trace.WriteLine("Settings has been saved.");
+            // ModelStatus("Settings has been saved.");
             return Task.CompletedTask;
         }
 
@@ -191,11 +198,8 @@ namespace Snowbreak_Rusifikator.Models
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
         static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token)
         {
-            //programConfig.fileName;
-            //programConfig.sha;
-            //await using Stream stream = await client.GetStreamAsync(urlLink);
             using HttpResponseMessage response = await client.GetAsync(urlLink);
-            List<RepositoryFile> repositoryFiles;
+            List<RepositoryFile> repositoryFiles = [];
             if (response.IsSuccessStatusCode)
             {
                 repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream());
@@ -246,14 +250,16 @@ namespace Snowbreak_Rusifikator.Models
             programConfig.sha = fileList[0].Sha;
             await SaveProgramConfig(programConfig, programConfigPath);
             Trace.WriteLine("File saved.");
+            // ModelStatus("File saved.");
         }
-        static Task RemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath)
+        static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath)
         {
             string filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
             File.Delete(filePath);
             programConfig.fileName = "";
             programConfig.sha = "";
             Trace.WriteLine("File removed.");
+            // ModelStatus("File removed.");
             SaveProgramConfig(programConfig, programConfigPath);
             return Task.CompletedTask;
         }

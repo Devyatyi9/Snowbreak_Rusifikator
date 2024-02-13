@@ -20,6 +20,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        //Models.MainModel.BaseProgramConfig();
         PointerPressed += (_, e) =>
         {
             if ((WindowState == WindowState.Normal) || (WindowState == WindowState.Maximized))
@@ -39,7 +40,10 @@ public partial class MainWindow : Window
         IReadOnlyList<IStorageFolder> folder = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
         if (folder.Count == 1)
         {
-            await MainModel.GetGameFolder(folder);
+            await new ViewModels.MainWindowViewModel().SelectGameFolder(folder);
+            StatusBar.Text = "Настройки сохранены";
+            // await ViewModels.MainWindowViewModel.SelectGameFolder(folder);
+            // new MainWindowViewModel().SelectGameFolderCommand(folder);
         }
     }
     //MyTextInput.AddHandler(TextInputEvent, MyTextInput_InputHandler, RoutingStrategies.Tunnel);
@@ -50,14 +54,13 @@ public partial class MainWindow : Window
         testerCheckbox.IsEnabled = false;
         Models.MainModel.isTester = (bool)testerCheckbox.IsChecked;
         await Models.MainModel.ChangeTesterState();
-        //Models.MainModel.StartUpdate();
         testerCheckbox.IsEnabled = true;
     }
 
     private async void InstallRemoveButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         installRemoveButton.IsEnabled = false;
-        //if проверка конфига на наличие установленой версии
+        // проверка конфига на наличие установленой версии
         Models.MainModel.StartUpdate();
         // изменить имя на Удалить перевод
         installRemoveButton.IsEnabled = true;
@@ -66,7 +69,7 @@ public partial class MainWindow : Window
     private async void CheckInstallUpdatesButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         checkInstallUpdatesButton.IsEnabled = false;
-        //
+        Models.MainModel.StartUpdate();
         checkInstallUpdatesButton.IsEnabled = true;
     }
 

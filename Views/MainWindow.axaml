@@ -15,7 +15,7 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaToDecorationsHint="True">
         <!-- SystemDecorations="None" -->
-  
+
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
@@ -50,16 +50,16 @@
           ColumnDefinitions="*" Classes="Mid" HorizontalAlignment="Center" VerticalAlignment="Center" ShowGridLines="False">
       <StackPanel Grid.Column="1">
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="2">
-          <TextBox Watermark="Путь до папки игры" Width="300" Classes="Input" Text=""/>
+          <TextBox Name="selectPathTextBox" Watermark="Путь до папки игры" Width="300" Classes="Input" Text="{Binding SelectPathTextBoxContent}" Focusable="False" IsReadOnly="True"/>
           <Button Name="selectPathButton" Click="SelectPathButton_Click" Cursor="Hand" Content="..."/>
         </StackPanel>
         <!---->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
-          <Button Name="installRemoveButton" Click="InstallRemoveButton_Click" IsEnabled="{Binding IsInstallRemoveButtonEnabled}" Margin="4" Cursor="Hand" Content="{Binding InstallRemoveButtonContent}"/>
-          <Button Name="checkInstallUpdatesButton" Click="CheckInstallUpdatesButton_Click" IsEnabled="{Binding IsCheckInstallUpdatesButtonEnabled}" Margin="4" Cursor="Hand" Content="Скачать обновление"/>
+          <Button Name="installRemoveButton" Command="{Binding InstallRemoveCommand}" IsEnabled="{Binding IsInstallRemoveButtonEnabled}" Margin="4" Cursor="Hand" Content="{Binding InstallRemoveButtonContent}"/>
+          <Button Name="checkInstallUpdatesButton" Command="{Binding CheckInstallUpdatesCommand}" IsEnabled="{Binding IsCheckInstallUpdatesButtonEnabled}" Margin="4" Cursor="Hand" Content="Скачать обновление"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
-          <Button Name="startLauncherButton" Click="StartLauncherButton_Click" IsEnabled="{Binding IsStartLauncherButtonEnabled}" Margin="4" Cursor="Hand" Content="Запустить лаунчер"/>
+          <Button Name="startLauncherButton" Command="{Binding StartLauncherCommand}" IsEnabled="{Binding IsStartLauncherButtonEnabled}" Margin="4" Cursor="Hand" Content="Запустить лаунчер"/>
         </StackPanel>
       </StackPanel>
     </Grid>
@@ -67,10 +67,10 @@
     <!-- Статус бар -->
     <StackPanel Grid.Row="3" Background="DarkGray" OpacityMask="Black" Opacity=".7"></StackPanel>
     <StackPanel Grid.Row="3" Classes="StatusBar" HorizontalAlignment="Left" VerticalAlignment="Center">
-      <TextBlock Text="{Binding Status}" Margin="2" Padding="3"/>
+      <TextBlock Name="StatusBar" Text="{Binding Status}" Margin="2" Padding="3"/>
     </StackPanel>
     <StackPanel Grid.Row="3" Margin="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-      <CheckBox Name="testerCheckbox" Click="TesterCheckbox_Click" IsEnabled="{Binding IsTesterCheckboxEnabled}" IsChecked="{Binding IsTesterCheckboxChecked}" Padding="5" FontWeight="Medium" FontSize="15" Foreground="#03444a" Cursor="Hand" Content="Tester"/>
+      <CheckBox Name="testerCheckbox"  Command="{Binding TesterCheckboxCommand}" IsEnabled="{Binding IsTesterCheckboxEnabled}" IsChecked="{Binding IsTesterCheckboxChecked}" Padding="5" FontWeight="Medium" FontSize="15" Foreground="#03444a" Cursor="Hand" Content="Tester"/>
     </StackPanel>
   </Grid>
 
