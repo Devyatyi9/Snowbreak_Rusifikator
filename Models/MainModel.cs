@@ -26,9 +26,10 @@ namespace Snowbreak_Rusifikator.Models
         static HttpClient Client = new();
 
         [SupportedOSPlatform("windows")]
-        public static async void StartUpdate()
+        public static async Task<Task> StartUpdate()
         {
             await AutoDetectingGamePathAsync(programConfig, programConfigPath);
+            return Task.CompletedTask;
         }
         
         public static async Task BaseProgramConfig() 
@@ -93,6 +94,8 @@ namespace Snowbreak_Rusifikator.Models
         {
             // Проверка tester branch
             string repoLink = ProgramVariables.gitHubRepoLink;
+            Debug.WriteLine("MainModel.isTester: " + MainModel.isTester);
+            Debug.WriteLine("programConfig.isTester: " + programConfig.isTester);
             if (programConfig.isTester == true)
             {
                 repoLink = ProgramVariables.gitHubRepoLink + ProgramVariables.gitHubTesterBranch;
@@ -135,6 +138,9 @@ namespace Snowbreak_Rusifikator.Models
                     Trace.WriteLine(value: $"Config game path: {jsonContent.gamePath}");
                     programConfig = jsonContent;
                     MainModel.isTester = programConfig.isTester;
+                    // вызов функции проверки наличия файла и папки
+                    programConfig = CheckIsFileExist(programConfig);
+                    await SaveProgramConfig(programConfig, programConfigPath);
                 }
                 else
                 {
@@ -154,6 +160,23 @@ namespace Snowbreak_Rusifikator.Models
             finally
             {
                 Trace.WriteLine("Конфиг загружен.");
+            }
+            return programConfig;
+        }
+
+        static ProgramConfig CheckIsFileExist(ProgramConfig programConfig) 
+        {
+            string filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
+            bool isExist = File.Exists(filePath);
+            if (!isExist) 
+            {
+                programConfig.fileName = "";
+                programConfig.sha = "";
+            }
+            bool isDirExist = Directory.Exists(programConfig.gamePath);
+            if (!isDirExist) 
+            {
+                programConfig.gamePath = "";
             }
             return programConfig;
         }
@@ -244,10 +267,12 @@ namespace Snowbreak_Rusifikator.Models
             string savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + fileList[0].Name;
             _ = Directory.CreateDirectory(path: Path.GetDirectoryName(savePath));
             using Stream s = await client.GetStreamAsync(fileList[0].DownloadUrl);
-            using FileStream fs = new FileStream(savePath, FileMode.OpenOrCreate);
+            using FileStream fs = new(savePath, FileMode.Create);
             await s.CopyToAsync(fs);
+            savePath = string.Empty;
             programConfig.fileName = fileList[0].Name;
             programConfig.sha = fileList[0].Sha;
+            fileList.Clear();
             await SaveProgramConfig(programConfig, programConfigPath);
             Trace.WriteLine("File saved.");
             // ModelStatus("File saved.");

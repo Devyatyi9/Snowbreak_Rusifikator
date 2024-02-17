@@ -13,6 +13,7 @@ using System.Linq;
 using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Threading;
 
 namespace Snowbreak_Rusifikator.ViewModels;
 
@@ -96,19 +97,20 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task InstallRemove() 
     {
         IsInstallRemoveButtonEnabled = false;
+        IsCheckInstallUpdatesButtonEnabled = false;
         // проверка конфига на наличие установленой версии
         if (Models.MainModel.programConfig.fileName != "") 
         {
             // Remove
             Models.MainModel.RemoveFile();
             InstallRemoveButtonContent = "Установить перевод";
-            IsCheckInstallUpdatesButtonEnabled = false;
         } else {
             // Install
             Models.MainModel.StartUpdate();
             InstallRemoveButtonContent = "Удалить перевод";
             IsCheckInstallUpdatesButtonEnabled = true;
         }
+        await Task.Delay(1500);
         IsInstallRemoveButtonEnabled = true;
     }
 
@@ -116,8 +118,11 @@ public partial class MainWindowViewModel : ViewModelBase
     private async Task CheckInstallUpdates() 
     {
         IsCheckInstallUpdatesButtonEnabled = false;
+        IsInstallRemoveButtonEnabled = false;
         Models.MainModel.StartUpdate();
+        await Task.Delay(1500);
         IsCheckInstallUpdatesButtonEnabled = true;
+        IsInstallRemoveButtonEnabled = true;
     }
     
     [RelayCommand]
@@ -125,6 +130,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsStartLauncherButtonEnabled = false;
         Models.MainModel.RunLauncher();
+        await Task.Delay(300);
         IsStartLauncherButtonEnabled = true;
     }
     
@@ -136,9 +142,23 @@ public partial class MainWindowViewModel : ViewModelBase
         Models.MainModel.isTester = IsTesterCheckboxChecked;
         await Models.MainModel.ChangeTesterState();
         Status = "Настройки сохранены";
-        IsTesterCheckboxEnabled = true;
-        await Task.Delay(500);
+        await Task.Delay(200);
+        if ((Models.MainModel.programConfig.gamePath != "") && (IsCheckInstallUpdatesButtonEnabled == true)) 
+        {
+            IsCheckInstallUpdatesButtonEnabled = false;
+            IsInstallRemoveButtonEnabled = false;
+            Models.MainModel.StartUpdate();
+            if (IsTesterCheckboxChecked == true) 
+            {
+                Status = "Тестовая версия установлена";
+            } else { Status = "Стандартная версия установлена"; }
+            await Task.Delay(300);
+            IsCheckInstallUpdatesButtonEnabled = true;
+            IsInstallRemoveButtonEnabled = true;
+        }
+        await Task.Delay(300);
         Status = string.Empty;
+        IsTesterCheckboxEnabled = true;
     }
     //
     //string url = "https://boosty.to/casualgacha";

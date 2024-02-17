@@ -23,6 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <AvaloniaXaml Remove="Test\**" />
+    <Compile Remove="Test\**" />
+    <EmbeddedResource Remove="Test\**" />
+    <None Remove="Test\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Assets\application_icon.ico" />
     <Content Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
   </ItemGroup>
