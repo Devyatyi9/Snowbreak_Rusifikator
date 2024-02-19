@@ -98,20 +98,26 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsInstallRemoveButtonEnabled = false;
         IsCheckInstallUpdatesButtonEnabled = false;
+        Task? localTask = null;
         // проверка конфига на наличие установленой версии
         if (Models.MainModel.programConfig.fileName != "") 
         {
             // Remove
-            Models.MainModel.RemoveFile();
+            localTask = await Models.MainModel.RemoveFile();
             InstallRemoveButtonContent = "Установить перевод";
+            if (localTask.IsCompleted) {
+                await Task.Delay(300);
+                IsInstallRemoveButtonEnabled = true; }
         } else {
             // Install
-            Models.MainModel.StartUpdate();
+            localTask = await Models.MainModel.StartUpdate();
             InstallRemoveButtonContent = "Удалить перевод";
-            IsCheckInstallUpdatesButtonEnabled = true;
+            if (localTask.IsCompleted) {
+                await Task.Delay(300);
+                IsCheckInstallUpdatesButtonEnabled = true;
+                IsInstallRemoveButtonEnabled = true;
+            }
         }
-        await Task.Delay(1500);
-        IsInstallRemoveButtonEnabled = true;
     }
 
     [RelayCommand]
@@ -119,10 +125,13 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsCheckInstallUpdatesButtonEnabled = false;
         IsInstallRemoveButtonEnabled = false;
-        Models.MainModel.StartUpdate();
-        await Task.Delay(1500);
-        IsCheckInstallUpdatesButtonEnabled = true;
-        IsInstallRemoveButtonEnabled = true;
+        Task? localTask = await Models.MainModel.StartUpdate();
+        if (localTask.IsCompleted) 
+        {
+            IsCheckInstallUpdatesButtonEnabled = true;
+            IsInstallRemoveButtonEnabled = true;
+        }
+        await Task.Delay(300);
     }
     
     [RelayCommand]

@@ -21,8 +21,8 @@ namespace Snowbreak_Rusifikator.Models
     internal class MainModel
     {
         static public bool isTester { get; set; }
-        static protected string programConfigPath;
-        static public ProgramConfig programConfig;
+        static protected string? programConfigPath;
+        static public ProgramConfig? programConfig;
         static HttpClient Client = new();
 
         [SupportedOSPlatform("windows")]
@@ -32,7 +32,7 @@ namespace Snowbreak_Rusifikator.Models
             return Task.CompletedTask;
         }
         
-        public static async Task BaseProgramConfig() 
+        public static async Task<Task> BaseProgramConfig() 
         {
             // https://learn.microsoft.com/ru-ru/dotnet/api/system.environment.specialfolder
             //string localAppdata = Environment.GetEnvironmentVariable("LocalAppdata");
@@ -40,12 +40,14 @@ namespace Snowbreak_Rusifikator.Models
             IConfigs.ProgramConfig programConfig = await CreateLoadProgramConfig(programConfigPath);
             MainModel.programConfigPath = programConfigPath;
             MainModel.programConfig = programConfig;
+            return Task.CompletedTask;
         }
 
-        public static async Task ChangeTesterState() 
+        public static async Task<Task> ChangeTesterState() 
         {
             programConfig.isTester = MainModel.isTester;
             await SaveProgramConfig(programConfig, programConfigPath);
+            return Task.CompletedTask;
         }
 
         public static void RunLauncher() 
@@ -63,7 +65,7 @@ namespace Snowbreak_Rusifikator.Models
             await SaveProgramConfig(programConfig, programConfigPath);
         }
 
-        public static Task RemoveFile()
+        public static async Task<Task> RemoveFile()
         {
             InternalRemoveFile(programConfig, programConfigPath);
             return Task.CompletedTask;
@@ -274,7 +276,7 @@ namespace Snowbreak_Rusifikator.Models
             programConfig.sha = fileList[0].Sha;
             fileList.Clear();
             await SaveProgramConfig(programConfig, programConfigPath);
-            Trace.WriteLine("File saved.");
+            Trace.WriteLine("Файл загружен и сохранён.");
             // ModelStatus("File saved.");
         }
         static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath)
@@ -283,7 +285,7 @@ namespace Snowbreak_Rusifikator.Models
             File.Delete(filePath);
             programConfig.fileName = "";
             programConfig.sha = "";
-            Trace.WriteLine("File removed.");
+            Trace.WriteLine("Файл удалён.");
             // ModelStatus("File removed.");
             SaveProgramConfig(programConfig, programConfigPath);
             return Task.CompletedTask;
