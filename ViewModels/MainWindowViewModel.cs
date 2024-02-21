@@ -66,6 +66,12 @@ public partial class MainWindowViewModel : ViewModelBase
         Status = "Готово";
     }
 
+    private async Task<Task> ChangeStatus(string text, int time) 
+    {
+        Status = text;
+        return Task.CompletedTask;
+    }
+
     //{Binding SelectGameFolderCommand}
     [RelayCommand]
     private async Task SelectGameFolder()
@@ -88,7 +94,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 IsStartLauncherButtonEnabled = true;
             }
-            await Task.Delay(500);
+            await Task.Delay(300);
             Status = string.Empty;
         }
     }
@@ -149,21 +155,29 @@ public partial class MainWindowViewModel : ViewModelBase
         Status = "Изменение...";
         IsTesterCheckboxEnabled = false;
         Models.MainModel.isTester = IsTesterCheckboxChecked;
-        await Models.MainModel.ChangeTesterState();
+        Task? localTask = null;
+        localTask = await Models.MainModel.ChangeTesterState();
         Status = "Настройки сохранены";
-        await Task.Delay(200);
+        //await Task.Delay(200);
         if ((Models.MainModel.programConfig.gamePath != "") && (IsCheckInstallUpdatesButtonEnabled == true)) 
         {
-            IsCheckInstallUpdatesButtonEnabled = false;
-            IsInstallRemoveButtonEnabled = false;
-            Models.MainModel.StartUpdate();
-            if (IsTesterCheckboxChecked == true) 
+            if (localTask.IsCompleted)
             {
-                Status = "Тестовая версия установлена";
-            } else { Status = "Стандартная версия установлена"; }
-            await Task.Delay(300);
-            IsCheckInstallUpdatesButtonEnabled = true;
-            IsInstallRemoveButtonEnabled = true;
+                IsCheckInstallUpdatesButtonEnabled = false;
+                IsInstallRemoveButtonEnabled = false;
+                localTask = await Models.MainModel.StartUpdate();
+                if (localTask.IsCompleted)
+                {
+                    if (IsTesterCheckboxChecked == true)
+                    {
+                        Status = "Тестовая версия установлена";
+                    }
+                    else { Status = "Стандартная версия установлена"; }
+                    //await Task.Delay(300);
+                    IsCheckInstallUpdatesButtonEnabled = true;
+                    IsInstallRemoveButtonEnabled = true;
+                }
+            }
         }
         await Task.Delay(300);
         Status = string.Empty;

@@ -15,6 +15,7 @@ using Avalonia.Platform.Storage;
 using Snowbreak_Rusifikator.ViewModels;
 using Avalonia.Data;
 using System.Text.Json.Serialization;
+using static Snowbreak_Rusifikator.RepositoryFile;
 
 namespace Snowbreak_Rusifikator.Models
 {
@@ -28,7 +29,7 @@ namespace Snowbreak_Rusifikator.Models
         [SupportedOSPlatform("windows")]
         public static async Task<Task> StartUpdate()
         {
-            await AutoDetectingGamePathAsync(programConfig, programConfigPath);
+            await RunCheckUpdatesAsync(programConfig, programConfigPath);
             return Task.CompletedTask;
         }
         
@@ -38,8 +39,12 @@ namespace Snowbreak_Rusifikator.Models
             //string localAppdata = Environment.GetEnvironmentVariable("LocalAppdata");
             string programConfigPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Snowbreak_rusificator\config.json";
             IConfigs.ProgramConfig programConfig = await CreateLoadProgramConfig(programConfigPath);
-            MainModel.programConfigPath = programConfigPath;
-            MainModel.programConfig = programConfig;
+            Task? localTask = await AutoDetectingGamePathAsync(programConfig, programConfigPath);
+            if (localTask.IsCompleted) 
+            {
+                MainModel.programConfigPath = programConfigPath;
+                MainModel.programConfig = programConfig;
+            }
             return Task.CompletedTask;
         }
 
@@ -71,7 +76,7 @@ namespace Snowbreak_Rusifikator.Models
             return Task.CompletedTask;
         }
 
-        static async Task AutoDetectingGamePathAsync(ProgramConfig programConfig, string programConfigPath)
+        static async Task<Task> AutoDetectingGamePathAsync(ProgramConfig programConfig, string programConfigPath)
         {
             // "C:\\Program Files\\Snow\\data"
             // "F:\\Games\\Snow\\the_game"
@@ -80,16 +85,16 @@ namespace Snowbreak_Rusifikator.Models
                 // StandaloneGame (launcher version) чекинг
                 CheckGamePath(programConfig);
             }
-            else if (programConfig.gamePath == "")
+            if (programConfig.gamePath == "")
             {
                 // Проверка наличия игры через Steam
                 programConfig.gamePath = CheckingSteam.Steam();
             }
-            else if (programConfig.gamePath != "")
+            if (programConfig.gamePath != "")
             {
                 await SaveProgramConfig(programConfig, programConfigPath);
-                await RunCheckUpdatesAsync(programConfig, programConfigPath);
             }
+            return Task.CompletedTask;
         }
 
         static async Task RunCheckUpdatesAsync(ProgramConfig programConfig, string programConfigPath)
@@ -108,6 +113,7 @@ namespace Snowbreak_Rusifikator.Models
             List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, repoLink, ProgramVariables.gitHubToken);
             // Сортировка
             repositoryFiles = SortingRepositoryFiles(repositoryFiles);
+            if (repositoryFiles.Count == 0) { throw new Exception("FileList Empty!"); }
             // Проверка sha: если запись пуста или она отличается
             if ((programConfig.sha == "") || (programConfig.sha != repositoryFiles[0].Sha))
             {
@@ -115,7 +121,7 @@ namespace Snowbreak_Rusifikator.Models
                 await DownloadAndSaveFileAsync(repositoryFiles, programConfig, client, programConfigPath);
             }
             else { Trace.WriteLine("Нет обновлений."); } //ModelStatus("Нет обновлений");
-            }
+        }
 
         static async Task<ProgramConfig> CreateLoadProgramConfig(string programConfigPath)
         {
@@ -132,11 +138,15 @@ namespace Snowbreak_Rusifikator.Models
             };
             try
             {
-                if (programConfigInfo.Exists && programConfigInfo.Length > 70)
+                if (programConfigInfo.Exists && programConfigInfo.Length > 120)
                 {
+                    var options = new JsonSerializerOptions
+                    {
+                        TypeInfoResolver = ConfigContext.Default
+                    };
                     // Чтение конфига
                     string jsonText = File.ReadAllText(programConfigPath);
-                    IConfigs.ProgramConfig? jsonContent = JsonSerializer.Deserialize<IConfigs.ProgramConfig>(jsonText);
+                    IConfigs.ProgramConfig? jsonContent = JsonSerializer.Deserialize<IConfigs.ProgramConfig>(jsonText, options);
                     Trace.WriteLine(value: $"Config game path: {jsonContent.gamePath}");
                     programConfig = jsonContent;
                     MainModel.isTester = programConfig.isTester;
@@ -189,18 +199,23 @@ namespace Snowbreak_Rusifikator.Models
             string tempGameDir = (string)Microsoft.Win32.Registry.GetValue(keyName: @"HKEY_LOCAL_MACHINE\SOFTWARE\ProjectSnow", "InstPath", null);
             if (tempGameDir != null)
             {
+                var options = new JsonSerializerOptions
+                {
+                    TypeInfoResolver = ConfigContext.Default
+                };
                 string jsonPath = tempGameDir + Path.DirectorySeparatorChar + "preference.json";
                 string jsonText = File.ReadAllText(jsonPath);
-                JsonGamePreference? jsonContent = JsonSerializer.Deserialize<JsonGamePreference>(jsonText);
+                JsonGamePreference? jsonContent = JsonSerializer.Deserialize<JsonGamePreference>(jsonText, options);
                 Trace.WriteLine(value: $"Game path: {jsonContent.dataPath}");
                 programConfig.gamePath = jsonContent.dataPath;
                 programConfig.launcherPath = tempGameDir + Path.DirectorySeparatorChar + "snow_launcher.exe";
+                MainModel.programConfig = programConfig;
             }
         }
 
         static Task SaveProgramConfig(object programConfig, string programConfigPath)
         {
-            string jsonString = JsonSerializer.Serialize(programConfig);
+            string jsonString = JsonSerializer.Serialize(programConfig, ConfigContext.Default.ProgramConfig);
             File.WriteAllText(programConfigPath, jsonString);
             Trace.WriteLine("Settings has been saved.");
             // ModelStatus("Settings has been saved.");
@@ -223,17 +238,21 @@ namespace Snowbreak_Rusifikator.Models
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
         static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token)
         {
+            var options = new JsonSerializerOptions
+            {
+                TypeInfoResolver = RepositoryFileContext.Default
+            };
             using HttpResponseMessage response = await client.GetAsync(urlLink);
             List<RepositoryFile> repositoryFiles = [];
             if (response.IsSuccessStatusCode)
             {
-                repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream());
+                repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options); // options // RepositoryFileContext.Default.RepositoryFile
             }
             else
             {
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", parameter: token);
                 using HttpResponseMessage secondResponse = await client.GetAsync(urlLink);
-                repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream());
+                repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options);
             }
 
             if (repositoryFiles == null)

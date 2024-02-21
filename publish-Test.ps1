@@ -1,1 +1,1 @@
-dotnet publish -r win-x64 -c Debug /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=false /p:JsonSerializerIsReflectionEnabledByDefault=true /p:PublishTrimmed=true --output ".\Test"
+dotnet publish -r win-x64 -c Debug /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=false /p:JsonSerializerIsReflectionEnabledByDefault=false /p:PublishTrimmed=true --output ".\Test"
