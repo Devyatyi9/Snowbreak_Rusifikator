@@ -220,6 +220,7 @@ namespace Snowbreak_Rusifikator.Models
             string jsonString = JsonSerializer.Serialize(programConfig, ConfigContext.Default.ProgramConfig);
             File.WriteAllText(programConfigPath, jsonString);
             Trace.WriteLine("Settings has been saved.");
+            programStatus = "Настройки сохранены.";
             // ModelStatus("Settings has been saved.");
             return Task.CompletedTask;
         }

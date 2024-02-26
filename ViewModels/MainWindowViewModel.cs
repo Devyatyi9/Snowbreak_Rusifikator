@@ -66,9 +66,10 @@ public partial class MainWindowViewModel : ViewModelBase
         Status = "Готово";
     }
 
-    private async Task<Task> ChangeStatus(int time) 
+    private async Task<Task> ChangeStatus(int time, string text = "") 
     {
-        Status = Models.MainModel.programStatus;
+        if (text.Length > 0)
+        { Status = text; } else { Status = Models.MainModel.programStatus; }
         await Task.Delay(time);
         Status = string.Empty;
         return Task.CompletedTask;
@@ -88,7 +89,7 @@ public partial class MainWindowViewModel : ViewModelBase
             Task localTask = await MainModel.GetGameFolder(folder);
             if (localTask.IsCompleted)
             {
-                Status = "Настройки сохранены";
+                await ChangeStatus(1000);
                 if (Models.MainModel.programConfig.gamePath != "")
                 {
                     IsInstallRemoveButtonEnabled = true;
@@ -167,23 +168,22 @@ public partial class MainWindowViewModel : ViewModelBase
         Models.MainModel.isTester = IsTesterCheckboxChecked;
         Task? localTask = null;
         localTask = await Models.MainModel.ChangeTesterState();
-        Status = "Настройки сохранены";
-        if ((Models.MainModel.programConfig.gamePath != "") && (IsCheckInstallUpdatesButtonEnabled == true)) 
+        if (localTask.IsCompleted)
         {
-            if (localTask.IsCompleted)
+            await ChangeStatus(1000);
+            if ((Models.MainModel.programConfig.gamePath != "") && (IsCheckInstallUpdatesButtonEnabled == true))
             {
-                IsCheckInstallUpdatesButtonEnabled = false;
-                IsInstallRemoveButtonEnabled = false;
-                localTask = await Models.MainModel.StartUpdate();
                 if (localTask.IsCompleted)
                 {
-                    if (IsTesterCheckboxChecked == true)
+                    IsCheckInstallUpdatesButtonEnabled = false;
+                    IsInstallRemoveButtonEnabled = false;
+                    localTask = await Models.MainModel.StartUpdate();
+                    if (localTask.IsCompleted)
                     {
-                        Status = "Тестовая версия установлена";
+                        await ChangeStatus(1000);
+                        IsCheckInstallUpdatesButtonEnabled = true;
+                        IsInstallRemoveButtonEnabled = true;
                     }
-                    else { Status = "Стандартная версия установлена"; }
-                    IsCheckInstallUpdatesButtonEnabled = true;
-                    IsInstallRemoveButtonEnabled = true;
                 }
             }
         }
