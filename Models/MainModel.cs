@@ -24,6 +24,7 @@ namespace Snowbreak_Rusifikator.Models
         static public bool isTester { get; set; }
         static protected string? programConfigPath;
         static public ProgramConfig? programConfig;
+        static public string programStatus { get; set; } = string.Empty;
         static HttpClient Client = new();
 
         [SupportedOSPlatform("windows")]
@@ -64,10 +65,11 @@ namespace Snowbreak_Rusifikator.Models
             }
         }
 
-        public static async Task GetGameFolder(IReadOnlyList<IStorageFolder> folder)
+        public static async Task<Task> GetGameFolder(IReadOnlyList<IStorageFolder> folder)
         {
             programConfig.gamePath = folder[0].TryGetLocalPath();
             await SaveProgramConfig(programConfig, programConfigPath);
+            return Task.CompletedTask;
         }
 
         public static async Task<Task> RemoveFile()
@@ -113,14 +115,14 @@ namespace Snowbreak_Rusifikator.Models
             List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, repoLink, ProgramVariables.gitHubToken);
             // Сортировка
             repositoryFiles = SortingRepositoryFiles(repositoryFiles);
-            if (repositoryFiles.Count == 0) { throw new Exception("FileList Empty!"); }
+            if (repositoryFiles.Count == 0) { throw new Exception("FileList Empty!"); } // сделать выдачу статуса "Репозиторий пуст" и завершать функцию
             // Проверка sha: если запись пуста или она отличается
             if ((programConfig.sha == "") || (programConfig.sha != repositoryFiles[0].Sha))
             {
                 // Функция скачивания и сохранения
                 await DownloadAndSaveFileAsync(repositoryFiles, programConfig, client, programConfigPath);
             }
-            else { Trace.WriteLine("Нет обновлений."); } //ModelStatus("Нет обновлений");
+            else { Trace.WriteLine("Нет обновлений."); programStatus = "Нет обновлений."; } //ModelStatus("Нет обновлений");
         }
 
         static async Task<ProgramConfig> CreateLoadProgramConfig(string programConfigPath)
@@ -238,6 +240,7 @@ namespace Snowbreak_Rusifikator.Models
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
         static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token)
         {
+            // добавить проверку на наличие интернет соединения, и завершать функцию со статусом "Нет соединения"
             var options = new JsonSerializerOptions
             {
                 TypeInfoResolver = RepositoryFileContext.Default
@@ -272,12 +275,15 @@ namespace Snowbreak_Rusifikator.Models
         static List<RepositoryFile> SortingRepositoryFiles(List<RepositoryFile> oldFileList)
         {
             List<RepositoryFile> newFileList = [];
-            foreach (RepositoryFile element in oldFileList)
+            if (oldFileList.Count > 0)
             {
-                string fileExt = Path.GetExtension(element.Name);
-                if (fileExt == ".pak")
+                foreach (RepositoryFile element in oldFileList)
                 {
-                    newFileList.Add(element);
+                    string fileExt = Path.GetExtension(element.Name);
+                    if (fileExt == ".pak")
+                    {
+                        newFileList.Add(element);
+                    }
                 }
             }
             return newFileList;
@@ -296,6 +302,7 @@ namespace Snowbreak_Rusifikator.Models
             fileList.Clear();
             await SaveProgramConfig(programConfig, programConfigPath);
             Trace.WriteLine("Файл загружен и сохранён.");
+            programStatus = "Файл загружен и сохранён.";
             // ModelStatus("File saved.");
         }
         static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath)
@@ -305,6 +312,7 @@ namespace Snowbreak_Rusifikator.Models
             programConfig.fileName = "";
             programConfig.sha = "";
             Trace.WriteLine("Файл удалён.");
+            programStatus = "Файл удалён.";
             // ModelStatus("File removed.");
             SaveProgramConfig(programConfig, programConfigPath);
             return Task.CompletedTask;

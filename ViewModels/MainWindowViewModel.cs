@@ -66,33 +66,38 @@ public partial class MainWindowViewModel : ViewModelBase
         Status = "Готово";
     }
 
-    private async Task<Task> ChangeStatus(string text, int time) 
+    private async Task<Task> ChangeStatus(int time) 
     {
-        Status = text;
+        Status = Models.MainModel.programStatus;
+        await Task.Delay(time);
+        Status = string.Empty;
         return Task.CompletedTask;
     }
 
-    //{Binding SelectGameFolderCommand}
     [RelayCommand]
     private async Task SelectGameFolder()
     {
         // See IoCFileOps project for an example of how to accomplish this.
+        Status = "В процессе...";
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop ||
             desktop.MainWindow?.StorageProvider is not { } provider)
             throw new NullReferenceException("Missing StorageProvider instance.");
         IReadOnlyList<IStorageFolder> folder = await provider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
         if (folder.Count == 1)
         {
-            await MainModel.GetGameFolder(folder);
-            Status = "Настройки сохранены";
-            if (Models.MainModel.programConfig.gamePath != "")
+            Task localTask = await MainModel.GetGameFolder(folder);
+            if (localTask.IsCompleted)
             {
-                IsInstallRemoveButtonEnabled = true;
-                SelectPathTextBoxContent = Models.MainModel.programConfig.gamePath;
-            }
-            if (Models.MainModel.programConfig.launcherPath != "")
-            {
-                IsStartLauncherButtonEnabled = true;
+                Status = "Настройки сохранены";
+                if (Models.MainModel.programConfig.gamePath != "")
+                {
+                    IsInstallRemoveButtonEnabled = true;
+                    SelectPathTextBoxContent = Models.MainModel.programConfig.gamePath;
+                }
+                if (Models.MainModel.programConfig.launcherPath != "")
+                {
+                    IsStartLauncherButtonEnabled = true;
+                }
             }
             await Task.Delay(300);
             Status = string.Empty;
@@ -104,6 +109,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsInstallRemoveButtonEnabled = false;
         IsCheckInstallUpdatesButtonEnabled = false;
+        Status = "В процессе...";
         Task? localTask = null;
         // проверка конфига на наличие установленой версии
         if (Models.MainModel.programConfig.fileName != "") 
@@ -112,6 +118,7 @@ public partial class MainWindowViewModel : ViewModelBase
             localTask = await Models.MainModel.RemoveFile();
             InstallRemoveButtonContent = "Установить перевод";
             if (localTask.IsCompleted) {
+                await ChangeStatus(1000);
                 await Task.Delay(300);
                 IsInstallRemoveButtonEnabled = true; }
         } else {
@@ -119,6 +126,7 @@ public partial class MainWindowViewModel : ViewModelBase
             localTask = await Models.MainModel.StartUpdate();
             InstallRemoveButtonContent = "Удалить перевод";
             if (localTask.IsCompleted) {
+                await ChangeStatus(1000);
                 await Task.Delay(300);
                 IsCheckInstallUpdatesButtonEnabled = true;
                 IsInstallRemoveButtonEnabled = true;
@@ -131,9 +139,11 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         IsCheckInstallUpdatesButtonEnabled = false;
         IsInstallRemoveButtonEnabled = false;
+        Status = "В процессе...";
         Task? localTask = await Models.MainModel.StartUpdate();
         if (localTask.IsCompleted) 
         {
+            await ChangeStatus(1000);
             IsCheckInstallUpdatesButtonEnabled = true;
             IsInstallRemoveButtonEnabled = true;
         }
@@ -158,7 +168,6 @@ public partial class MainWindowViewModel : ViewModelBase
         Task? localTask = null;
         localTask = await Models.MainModel.ChangeTesterState();
         Status = "Настройки сохранены";
-        //await Task.Delay(200);
         if ((Models.MainModel.programConfig.gamePath != "") && (IsCheckInstallUpdatesButtonEnabled == true)) 
         {
             if (localTask.IsCompleted)
@@ -173,7 +182,6 @@ public partial class MainWindowViewModel : ViewModelBase
                         Status = "Тестовая версия установлена";
                     }
                     else { Status = "Стандартная версия установлена"; }
-                    //await Task.Delay(300);
                     IsCheckInstallUpdatesButtonEnabled = true;
                     IsInstallRemoveButtonEnabled = true;
                 }
