@@ -3,3 +3,4 @@ obj/
 bin/
 Publish/
 Test/
+Models/GitHubToken.cs

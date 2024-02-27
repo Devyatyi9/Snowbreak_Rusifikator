@@ -84,6 +84,7 @@ public partial class MainWindowViewModel : ViewModelBase
             desktop.MainWindow?.StorageProvider is not { } provider)
             throw new NullReferenceException("Missing StorageProvider instance.");
         IReadOnlyList<IStorageFolder> folder = await provider.OpenFolderPickerAsync(new FolderPickerOpenOptions { Title = "Выберите папку игры", AllowMultiple = false });
+        Status = string.Empty;
         if (folder.Count == 1)
         {
             Task localTask = await MainModel.GetGameFolder(folder);
@@ -119,7 +120,7 @@ public partial class MainWindowViewModel : ViewModelBase
             localTask = await Models.MainModel.RemoveFile();
             InstallRemoveButtonContent = "Установить перевод";
             if (localTask.IsCompleted) {
-                await ChangeStatus(1000);
+                ChangeStatus(1000);
                 await Task.Delay(300);
                 IsInstallRemoveButtonEnabled = true; }
         } else {
@@ -127,7 +128,7 @@ public partial class MainWindowViewModel : ViewModelBase
             localTask = await Models.MainModel.StartUpdate();
             InstallRemoveButtonContent = "Удалить перевод";
             if (localTask.IsCompleted) {
-                await ChangeStatus(1000);
+                ChangeStatus(1000);
                 await Task.Delay(300);
                 IsCheckInstallUpdatesButtonEnabled = true;
                 IsInstallRemoveButtonEnabled = true;
@@ -170,7 +171,7 @@ public partial class MainWindowViewModel : ViewModelBase
         localTask = await Models.MainModel.ChangeTesterState();
         if (localTask.IsCompleted)
         {
-            await ChangeStatus(1000);
+            await ChangeStatus(700);
             if ((Models.MainModel.programConfig.gamePath != "") && (IsCheckInstallUpdatesButtonEnabled == true))
             {
                 if (localTask.IsCompleted)
