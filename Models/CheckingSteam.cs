@@ -1,5 +1,4 @@
 using Avalonia;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -54,14 +53,10 @@ namespace Snowbreak_Rusifikator
             {
                 for (int i = 0; i < steamAppsCollection.Count; i++)
                 {
-                    //Debug.WriteLine(steamAppsCollection[i].Value);
-                    //Debug.WriteLine("'{0}' found at index {1}.", steamAppsCollection[i].Value, steamAppsCollection[i].Index);
-                    //Debug.WriteLine("steamAppsCollection.Group: '{0}' из '{1}'", (i + 1), steamAppsCollection.Count);
                     bool isGameExist = steamAppsCollection[i].Value.Contains('\"' + gameId + '\"');
                     if (isGameExist)
                     {
                         groupIndex = i;
-                        //Debug.WriteLine("end FOR");
                         break;
                     }
                 }
@@ -86,46 +81,6 @@ namespace Snowbreak_Rusifikator
                     }
                 }
             }
-            //foreach (Match m in steamAppsCollection)
-            //{
-            //    Debug.WriteLine("'{0}' found at index {1}.", m.Value, m.Index);
-            //    Debug.WriteLine("indexes.Count: '{0}'", steamAppsCollection.Count);
-            //    //m.Groups[1].Captures
-            //}
-            //.Cast<Match>().ToList()
-            //.Select(m => m.Groups[2].Captures).ToList()
-            //.SelectMany(c => c.Cast<Capture>())
-            //.Select(c => c.Value).ToList();
-
-            //indexes.ForEach(i => { });
-            //List<string>
-
-            //List<Match> indexes = Regex.Matches(input, pattern, RegexOptions.Singleline)
-            //   .Cast<Match>().ToList();
-            ////for (int i = 0; i < indexes.Count; i++) { indexes.Count; }
-            //foreach (Match match in indexes)
-            //{
-            //    indexes.Select(m => m.Groups[2].Captures).ToList()
-            //        .SelectMany(c => c.Cast<Capture>())
-            //        .Select(c => c.Value).ToList();
-            //}
-            //.Select(m => m.Groups[2].Captures).ToList()
-            //.SelectMany(c => c.Cast<Capture>())
-            //.Select(c => c.Value).ToList();
-
-            //foreach (string s in indexes)
-            //{
-            //    Debug.WriteLine(s);
-            //}
-
-            //
-            //
-
-            //var testData = Gameloop.Vdf.VdfReader(steamConfig);
-            //dynamic volvo = VdfConvert.Deserialize(File.ReadAllText(steamConfig));
-            //Console.WriteLine(volvo.GetType("1"));
-            //Console.WriteLine(volvo.GetType("libraryfolders"));
-            //volvo.GetType(1);
             return Task.CompletedTask;
         }
     }

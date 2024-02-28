@@ -87,11 +87,11 @@ namespace Snowbreak_Rusifikator.Models
         {
             // "C:\\Program Files\\Snow\\data"
             // "F:\\Games\\Snow\\the_game"
-            //if (programConfig.gamePath == "")
-            //{
-            //    // StandaloneGame (launcher version) чекинг
-            //    CheckGamePath(programConfig);
-            //}
+            if (programConfig.gamePath == "")
+            {
+                // StandaloneGame (launcher version) чекинг
+                CheckGamePath(programConfig);
+            }
             if (programConfig.gamePath == "")
             {
                 // Проверка наличия игры через Steam
@@ -196,6 +196,7 @@ namespace Snowbreak_Rusifikator.Models
             if (!isDirExist) 
             {
                 programConfig.gamePath = "";
+                programConfig.launcherPath = "";
             }
             return programConfig;
         }
@@ -211,17 +212,22 @@ namespace Snowbreak_Rusifikator.Models
                     TypeInfoResolver = ConfigContext.Default
                 };
                 string jsonPath = tempGameDir + Path.DirectorySeparatorChar + "preference.json";
-                string jsonText = File.ReadAllText(jsonPath);
-                JsonGamePreference? jsonContent = JsonSerializer.Deserialize<JsonGamePreference>(jsonText, options);
-                Trace.WriteLine(value: $"Game path: {jsonContent.dataPath}");
-                programConfig.gamePath = jsonContent.dataPath;
-                programConfig.launcherPath = tempGameDir + Path.DirectorySeparatorChar + "snow_launcher.exe";
-                MainModel.programConfig = programConfig;
+                if (File.Exists(jsonPath) && new FileInfo(jsonPath).Length > 0)
+                {
+                    string jsonText = File.ReadAllText(jsonPath);
+                    JsonGamePreference? jsonContent = JsonSerializer.Deserialize<JsonGamePreference>(jsonText, options);
+                    Trace.WriteLine(value: $"Game path: {jsonContent.dataPath}");
+                    programConfig.gamePath = jsonContent.dataPath;
+                    programConfig.launcherPath = tempGameDir + Path.DirectorySeparatorChar + "snow_launcher.exe";
+                    if (!File.Exists(programConfig.launcherPath)) { programConfig.launcherPath = ""; }
+                    MainModel.programConfig = programConfig;
+                }
             }
         }
 
-        static Task SaveProgramConfig(object programConfig, string programConfigPath)
+        static Task SaveProgramConfig(ProgramConfig programConfig, string programConfigPath)
         {
+            MainModel.programConfig = programConfig;
             string jsonString = JsonSerializer.Serialize(programConfig, ConfigContext.Default.ProgramConfig);
             File.WriteAllText(programConfigPath, jsonString);
             Trace.WriteLine("Settings has been saved.");
