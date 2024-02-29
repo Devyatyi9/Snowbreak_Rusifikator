@@ -43,44 +43,47 @@ namespace Snowbreak_Rusifikator
         {
             Trace.WriteLine("Парсинг библиотеки Steam");
             string steamConfigPath = steamDir + @"\SteamApps\libraryfolders.vdf";
-            string gameId = "2668080";
-            string pattern = "\"apps\"\\s+{\\s+(?<line>\"(?<value>\\d+)\"\\s+\"\\d+\"\\s+)+\\s+}"; // "apps"\s+{\s+(?<line>"(?<value>\d+)"\s+"\d+"\s+)+\s+}
-            string input = File.ReadAllText(steamConfigPath);
+            if (File.Exists(steamConfigPath) && new FileInfo(steamConfigPath).Length > 0)
+            {
+                string gameId = "2668080";
+                string pattern = "\"apps\"\\s+{\\s+(?<line>\"(?<value>\\d+)\"\\s+\"\\d+\"\\s+)+\\s+}"; // "apps"\s+{\s+(?<line>"(?<value>\d+)"\s+"\d+"\s+)+\s+}
+                string input = File.ReadAllText(steamConfigPath);
 
-            MatchCollection steamAppsCollection = Regex.Matches(input, pattern, RegexOptions.Singleline);
-            int groupIndex = -1;
-            if (steamAppsCollection.Count > 0)
-            {
-                for (int i = 0; i < steamAppsCollection.Count; i++)
-                {
-                    bool isGameExist = steamAppsCollection[i].Value.Contains('\"' + gameId + '\"');
-                    if (isGameExist)
-                    {
-                        groupIndex = i;
-                        break;
-                    }
-                }
-            } else { Trace.WriteLine("Steam версия не установлена"); }
-            if (groupIndex != -1)
-            {
-                pattern = "^\\s+\"(?<key>path)\"\\s+\"(?<value>.+)\"$"; // ^\s+"(?<key>path)"\s+"(?<value>.+)"$
-                steamAppsCollection = Regex.Matches(input, pattern, RegexOptions.Multiline);
+                MatchCollection steamAppsCollection = Regex.Matches(input, pattern, RegexOptions.Singleline);
+                int groupIndex = -1;
                 if (steamAppsCollection.Count > 0)
                 {
-                    // F:\\SteamLibrary
-                    string libraryPath = steamAppsCollection[groupIndex].Groups[2].Value;
-                    steamAppsCollection = null;
-                    input = null;
-                    string tempGamePath = libraryPath + Path.DirectorySeparatorChar + @"steamapps\common\SNOWBREAK";
-                    tempGamePath = Path.GetFullPath(tempGamePath); // for normalize path
-                    bool isDirExist = Directory.Exists(tempGamePath);
-                    if (isDirExist)
+                    for (int i = 0; i < steamAppsCollection.Count; i++)
                     {
-                        gamePath = tempGamePath;
-                        Trace.WriteLine("Установлена Steam версия игры");
+                        bool isGameExist = steamAppsCollection[i].Value.Contains('\"' + gameId + '\"');
+                        if (isGameExist)
+                        {
+                            groupIndex = i;
+                            break;
+                        }
                     }
-                }
-            }
+                } else { Trace.WriteLine("Steam версия не установлена или файл libraryfolders.vdf повреждён"); }
+                if (groupIndex != -1)
+                {
+                    pattern = "^\\s+\"(?<key>path)\"\\s+\"(?<value>.+)\"$"; // ^\s+"(?<key>path)"\s+"(?<value>.+)"$
+                    steamAppsCollection = Regex.Matches(input, pattern, RegexOptions.Multiline);
+                    if (steamAppsCollection.Count > 0)
+                    {
+                        // F:\\SteamLibrary
+                        string libraryPath = steamAppsCollection[groupIndex].Groups[2].Value;
+                        steamAppsCollection = null;
+                        input = null;
+                        string tempGamePath = libraryPath + Path.DirectorySeparatorChar + @"steamapps\common\SNOWBREAK";
+                        tempGamePath = Path.GetFullPath(tempGamePath); // for normalize path
+                        bool isDirExist = Directory.Exists(tempGamePath);
+                        if (isDirExist)
+                        {
+                            gamePath = tempGamePath;
+                            Trace.WriteLine("Установлена Steam версия игры");
+                        }
+                    }
+                } else { Trace.WriteLine("Steam версия не установлена или файл libraryfolders.vdf повреждён"); }
+            } else { Trace.WriteLine("Файл libraryfolders.vdf не найден или повреждён"); }
             return Task.CompletedTask;
         }
     }

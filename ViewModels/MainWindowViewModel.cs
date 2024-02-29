@@ -96,9 +96,14 @@ public partial class MainWindowViewModel : ViewModelBase
                     IsInstallRemoveButtonEnabled = true;
                     SelectPathTextBoxContent = Models.MainModel.programConfig.gamePath;
                 }
-                if (Models.MainModel.programConfig.launcherPath != "")
+                if (Models.MainModel.programConfig.fileName == "")
                 {
-                    IsStartLauncherButtonEnabled = true;
+                    InstallRemoveButtonContent = "Установить перевод";
+                    IsCheckInstallUpdatesButtonEnabled = false;
+                }
+                if (Models.MainModel.programConfig.launcherPath == "")
+                {
+                    IsStartLauncherButtonEnabled = false;
                 }
             }
             await Task.Delay(300);

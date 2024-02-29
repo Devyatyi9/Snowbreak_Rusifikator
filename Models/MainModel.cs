@@ -73,13 +73,17 @@ namespace Snowbreak_Rusifikator.Models
         public static async Task<Task> GetGameFolder(IReadOnlyList<IStorageFolder> folder)
         {
             programConfig.gamePath = folder[0].TryGetLocalPath();
+            programConfig.fileName = "";
+            programConfig.sha = "";
+            programConfig.launcherPath = "";
             await SaveProgramConfig(programConfig, programConfigPath);
             return Task.CompletedTask;
         }
 
         public static async Task<Task> RemoveFile()
         {
-            InternalRemoveFile(programConfig, programConfigPath);
+            bool steam = await CheckFolderStructure();
+            await InternalRemoveFile(programConfig, programConfigPath, steam);
             return Task.CompletedTask;
         }
 
@@ -124,10 +128,11 @@ namespace Snowbreak_Rusifikator.Models
             // Проверка sha: если запись пуста или она отличается
             if ((programConfig.sha == "") || (programConfig.sha != repositoryFiles[0].Sha))
             {
+                bool steam = await CheckFolderStructure();
                 // Функция скачивания и сохранения
-                await DownloadAndSaveFileAsync(repositoryFiles, programConfig, client, programConfigPath);
+                await DownloadAndSaveFileAsync(repositoryFiles, programConfig, client, programConfigPath, steam);
             }
-            else { Trace.WriteLine("Нет обновлений."); programStatus = "Нет обновлений."; } //ModelStatus("Нет обновлений");
+            else { Trace.WriteLine("Нет обновлений."); programStatus = "Нет обновлений."; }
         }
 
         static async Task<ProgramConfig> CreateLoadProgramConfig(string programConfigPath)
@@ -232,7 +237,7 @@ namespace Snowbreak_Rusifikator.Models
             File.WriteAllText(programConfigPath, jsonString);
             Trace.WriteLine("Settings has been saved.");
             programStatus = "Настройки сохранены.";
-            // ModelStatus("Settings has been saved.");
+
             return Task.CompletedTask;
         }
 
@@ -307,10 +312,29 @@ namespace Snowbreak_Rusifikator.Models
             return newFileList;
         }
 
-        static async Task DownloadAndSaveFileAsync(List<RepositoryFile> fileList, IConfigs.ProgramConfig programConfig, HttpClient client, string programConfigPath)
+        static async Task<bool> CheckFolderStructure()
         {
-            // проверить поддержку пути для Steam-версии
-            string savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + fileList[0].Name;
+            // проверка на Steam-версию игры
+            bool value = false;
+            string nonSteamGameExePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Binaries\\Win64\\Game.exe";
+            string steamGameExePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Binaries\\Win64\\Game.exe";
+            if (File.Exists(nonSteamGameExePath) && new FileInfo(nonSteamGameExePath).Length > 0)
+            { value = false; }
+            else if (File.Exists(steamGameExePath) && new FileInfo(steamGameExePath).Length > 0)
+            { value = true; }
+            return value;
+        }
+
+        static async Task DownloadAndSaveFileAsync(List<RepositoryFile> fileList, IConfigs.ProgramConfig programConfig, HttpClient client, string programConfigPath, bool steam = false)
+        {
+            string savePath;
+            if (!steam)
+            {
+                savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + fileList[0].Name;
+            } else 
+            {
+                savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Content\\Paks\\~mods\\" + fileList[0].Name;
+            }
             _ = Directory.CreateDirectory(path: Path.GetDirectoryName(savePath));
             using Stream s = await client.GetStreamAsync(fileList[0].DownloadUrl);
             using FileStream fs = new(savePath, FileMode.Create);
@@ -322,18 +346,23 @@ namespace Snowbreak_Rusifikator.Models
             await SaveProgramConfig(programConfig, programConfigPath);
             Trace.WriteLine("Файл загружен и сохранён.");
             programStatus = "Файл загружен и сохранён.";
-            // ModelStatus("File saved.");
         }
-        static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath)
+        static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath, bool steam = false)
         {
-            // проверить поддержку пути для Steam-версии
-            string filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
+            string filePath;
+            if (!steam)
+            {
+                filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
+            }
+            else
+            {
+                filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
+            }
             File.Delete(filePath);
             programConfig.fileName = "";
             programConfig.sha = "";
             Trace.WriteLine("Файл удалён.");
             programStatus = "Файл удалён.";
-            // ModelStatus("File removed.");
             SaveProgramConfig(programConfig, programConfigPath);
             return Task.CompletedTask;
         }
