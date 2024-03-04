@@ -1,4 +1,4 @@
-using Avalonia.Platform.Storage;
+﻿using Avalonia.Platform.Storage;
 using Avalonia.Controls;
 using System.Diagnostics;
 using System;
@@ -17,8 +17,9 @@ using System.Threading;
 
 namespace Snowbreak_Rusifikator.ViewModels;
 
-public partial class MainWindowViewModel : ViewModelBase
+public partial class MainViewModel : ViewModelBase
 {
+    public string Greeting => "Добро пожаловать в Авалонию!";
     #region [Properties]
     [ObservableProperty]
     private string selectPathTextBoxContent = string.Empty;
@@ -42,8 +43,9 @@ public partial class MainWindowViewModel : ViewModelBase
     private string status = string.Empty;
     #endregion
 
-    public MainWindowViewModel()
+    public MainViewModel()
     {
+#if !ANDROID
         Status = "Загрузка...";
         InstallRemoveButtonContent = @"/..\";
         Models.MainModel.BaseProgramConfig();
@@ -64,12 +66,14 @@ public partial class MainWindowViewModel : ViewModelBase
             IsStartLauncherButtonEnabled = true;
         }
         Status = "Готово";
+#endif
     }
 
-    private async Task<Task> ChangeStatus(int time, string text = "") 
+    private async Task<Task> ChangeStatus(int time, string text = "")
     {
         if (text.Length > 0)
-        { Status = text; } else { Status = Models.MainModel.programStatus; }
+        { Status = text; }
+        else { Status = Models.MainModel.programStatus; }
         await Task.Delay(time);
         Status = string.Empty;
         return Task.CompletedTask;
@@ -112,27 +116,32 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task InstallRemove() 
+    private async Task InstallRemove()
     {
         IsInstallRemoveButtonEnabled = false;
         IsCheckInstallUpdatesButtonEnabled = false;
         Status = "В процессе...";
         Task? localTask = null;
         // проверка конфига на наличие установленой версии
-        if (Models.MainModel.programConfig.fileName != "") 
+        if (Models.MainModel.programConfig.fileName != "")
         {
             // Remove
             localTask = await Models.MainModel.RemoveFile();
             InstallRemoveButtonContent = "Установить перевод";
-            if (localTask.IsCompleted) {
+            if (localTask.IsCompleted)
+            {
                 ChangeStatus(1000);
                 await Task.Delay(300);
-                IsInstallRemoveButtonEnabled = true; }
-        } else {
+                IsInstallRemoveButtonEnabled = true;
+            }
+        }
+        else
+        {
             // Install
             localTask = await Models.MainModel.StartUpdate();
             InstallRemoveButtonContent = "Удалить перевод";
-            if (localTask.IsCompleted) {
+            if (localTask.IsCompleted)
+            {
                 ChangeStatus(1000);
                 await Task.Delay(300);
                 IsCheckInstallUpdatesButtonEnabled = true;
@@ -142,13 +151,13 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task CheckInstallUpdates() 
+    private async Task CheckInstallUpdates()
     {
         IsCheckInstallUpdatesButtonEnabled = false;
         IsInstallRemoveButtonEnabled = false;
         Status = "В процессе...";
         Task? localTask = await Models.MainModel.StartUpdate();
-        if (localTask.IsCompleted) 
+        if (localTask.IsCompleted)
         {
             await ChangeStatus(1000);
             IsCheckInstallUpdatesButtonEnabled = true;
@@ -156,16 +165,16 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         await Task.Delay(300);
     }
-    
+
     [RelayCommand]
-    private async Task StartLauncher() 
+    private async Task StartLauncher()
     {
         IsStartLauncherButtonEnabled = false;
         Models.MainModel.RunLauncher();
         await Task.Delay(300);
         IsStartLauncherButtonEnabled = true;
     }
-    
+
     [RelayCommand]
     private async Task TesterCheckbox()
     {

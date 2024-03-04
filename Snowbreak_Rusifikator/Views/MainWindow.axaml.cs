@@ -1,18 +1,4 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data;
-using Avalonia.Interactivity;
-using Avalonia.Platform.Storage;
-using Snowbreak_Rusifikator.Models;
-using Snowbreak_Rusifikator.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection.PortableExecutable;
-using System.Runtime.Versioning;
-using System.Threading.Tasks;
+﻿using Avalonia.Controls;
 
 namespace Snowbreak_Rusifikator.Views;
 

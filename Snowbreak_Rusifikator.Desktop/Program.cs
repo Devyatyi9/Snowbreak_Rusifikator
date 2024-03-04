@@ -1,10 +1,10 @@
-﻿using Avalonia;
-using System;
-using System.Runtime.Versioning;
+﻿using System;
 
-namespace Snowbreak_Rusifikator;
+using Avalonia;
 
-sealed class Program
+namespace Snowbreak_Rusifikator.Desktop;
+
+class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -19,4 +19,5 @@ sealed class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
 }

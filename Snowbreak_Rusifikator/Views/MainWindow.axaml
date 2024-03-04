@@ -3,9 +3,10 @@
         xmlns:vm="using:Snowbreak_Rusifikator.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Snowbreak_Rusifikator.Views"
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
         x:Class="Snowbreak_Rusifikator.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
+        x:DataType="vm:MainViewModel"
         Icon="/Assets/application_icon.ico"
         Title="Русификатор Snowbreak"
         Width="600"
@@ -15,11 +16,11 @@
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaToDecorationsHint="True">
         <!-- SystemDecorations="None" -->
-
+  
   <Design.DataContext>
     <!-- This only sets the DataContext for the previewer in an IDE,
              to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainWindowViewModel/>
+    <vm:MainViewModel/>
   </Design.DataContext>
 
   <Window.Background>
