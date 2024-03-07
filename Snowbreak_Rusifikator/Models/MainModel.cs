@@ -26,7 +26,7 @@ namespace Snowbreak_Rusifikator.Models
         static protected string? programConfigPath;
         static public ProgramConfig? programConfig;
         static public string programStatus { get; set; } = string.Empty;
-        static HttpClient Client = new();
+        static readonly HttpClient Client = new();
 
         [SupportedOSPlatform("windows")]
         public static async Task<Task> StartUpdate()
@@ -262,30 +262,37 @@ namespace Snowbreak_Rusifikator.Models
             {
                 TypeInfoResolver = RepositoryFileContext.Default
             };
-            using HttpResponseMessage response = await client.GetAsync(urlLink);
             List<RepositoryFile> repositoryFiles = [];
-            if (response.IsSuccessStatusCode)
+            try
             {
-                repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options); // options // RepositoryFileContext.Default.RepositoryFile
-            }
-            if (repositoryFiles == null || repositoryFiles.Count == 0)
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", parameter: token);
-                using HttpResponseMessage secondResponse = await client.GetAsync(urlLink);
-                repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options);
-            }
+                using HttpResponseMessage response = await client.GetAsync(urlLink);
+                if (response.IsSuccessStatusCode)
+                {
+                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options);
+                }
+                if (repositoryFiles == null || repositoryFiles.Count == 0)
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", parameter: token);
+                    using HttpResponseMessage secondResponse = await client.GetAsync(urlLink);
+                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options);
+                }
 
-            if (!response.IsSuccessStatusCode)
-            {
-                // cancel update function
-                Debug.WriteLine("Critical Error!");
-            }
+                if (!response.IsSuccessStatusCode)
+                {
+                    // cancel update function
+                    Debug.WriteLine("Critical Error!");
+                }
 
-            if (repositoryFiles == null)
-            {
-                throw new Exception();
+                if (repositoryFiles == null)
+                {
+                    throw new Exception();
+                }
             }
-
+            catch (HttpRequestException e)
+            {
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", e.Message);
+            }
             return repositoryFiles;
             //return repositoryFiles ?? new();
             //var json = await client.GetStringAsync("https://api.github.com/orgs/dotnet/repos");
@@ -335,10 +342,18 @@ namespace Snowbreak_Rusifikator.Models
             {
                 savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Content\\Paks\\~mods\\" + fileList[0].Name;
             }
-            _ = Directory.CreateDirectory(path: Path.GetDirectoryName(savePath));
-            using Stream s = await client.GetStreamAsync(fileList[0].DownloadUrl);
-            using FileStream fs = new(savePath, FileMode.Create);
-            await s.CopyToAsync(fs);
+            try
+            {
+                _ = Directory.CreateDirectory(path: Path.GetDirectoryName(savePath));
+                using Stream s = await client.GetStreamAsync(fileList[0].DownloadUrl);
+                using FileStream fs = new(savePath, FileMode.Create);
+                await s.CopyToAsync(fs);
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("\nException Caught!");
+                Console.WriteLine("Message :{0} ", e.Message);
+            }
             savePath = string.Empty;
             programConfig.fileName = fileList[0].Name;
             programConfig.sha = fileList[0].Sha;
