@@ -152,7 +152,7 @@ namespace Snowbreak_Rusifikator.Models
             {
                 if (programConfigInfo.Exists && programConfigInfo.Length > 120)
                 {
-                    var options = new JsonSerializerOptions
+                    JsonSerializerOptions options = new()
                     {
                         TypeInfoResolver = ConfigContext.Default
                     };
@@ -212,7 +212,7 @@ namespace Snowbreak_Rusifikator.Models
             string tempGameDir = (string)Microsoft.Win32.Registry.GetValue(keyName: @"HKEY_LOCAL_MACHINE\SOFTWARE\ProjectSnow", "InstPath", null);
             if (tempGameDir != null)
             {
-                var options = new JsonSerializerOptions
+                JsonSerializerOptions options = new()
                 {
                     TypeInfoResolver = ConfigContext.Default
                 };
@@ -258,7 +258,7 @@ namespace Snowbreak_Rusifikator.Models
         static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token)
         {
             // добавить проверку на наличие интернет соединения, и завершать функцию со статусом "Нет соединения"
-            var options = new JsonSerializerOptions
+            JsonSerializerOptions options = new()
             {
                 TypeInfoResolver = RepositoryFileContext.Default
             };
