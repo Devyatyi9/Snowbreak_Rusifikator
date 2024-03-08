@@ -17,6 +17,7 @@ using Avalonia.Data;
 using System.Text.Json.Serialization;
 using static Snowbreak_Rusifikator.RepositoryFile;
 using System.Data;
+using System.Threading;
 
 namespace Snowbreak_Rusifikator.Models
 {
@@ -29,16 +30,16 @@ namespace Snowbreak_Rusifikator.Models
         static readonly HttpClient Client = new();
 
         [SupportedOSPlatform("windows")]
-        public static async Task<Task> StartUpdate()
+        public static async Task<Task> StartUpdate(CancellationToken cancellationToken = default)
         {
-            await RunCheckUpdatesAsync(programConfig, programConfigPath);
+            await RunCheckUpdatesAsync(programConfig, programConfigPath, cancellationToken);
+            //OperationCanceledException
             return Task.CompletedTask;
         }
         
         public static async Task<Task> BaseProgramConfig() 
         {
             // https://learn.microsoft.com/ru-ru/dotnet/api/system.environment.specialfolder
-            //string localAppdata = Environment.GetEnvironmentVariable("LocalAppdata");
             string programConfigPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"\Snowbreak_rusificator\config.json";
             IConfigs.ProgramConfig programConfig = await CreateLoadProgramConfig(programConfigPath);
             MainModel.programConfigPath = programConfigPath;
@@ -46,7 +47,7 @@ namespace Snowbreak_Rusifikator.Models
             if (programConfig.gamePath.Length == 0)
             {
                 Task? localTask = await AutoDetectingGamePathAsync(programConfig, programConfigPath);
-                if (localTask.IsCompleted)
+                if (localTask.IsCompletedSuccessfully)
                 {
                     MainModel.programConfig = programConfig;
                 }
@@ -73,6 +74,12 @@ namespace Snowbreak_Rusifikator.Models
         public static async Task<Task> GetGameFolder(IReadOnlyList<IStorageFolder> folder)
         {
             programConfig.gamePath = folder[0].TryGetLocalPath();
+            string gamePathDataCheck = programConfig.gamePath + Path.DirectorySeparatorChar + "data";
+            bool isDirExist = Directory.Exists(gamePathDataCheck);
+            if (isDirExist)
+            {
+                programConfig.gamePath = gamePathDataCheck;
+            }
             programConfig.fileName = "";
             programConfig.sha = "";
             programConfig.launcherPath = "";
@@ -108,7 +115,7 @@ namespace Snowbreak_Rusifikator.Models
             return Task.CompletedTask;
         }
 
-        static async Task RunCheckUpdatesAsync(ProgramConfig programConfig, string programConfigPath)
+        static async Task RunCheckUpdatesAsync(ProgramConfig programConfig, string programConfigPath, CancellationToken cancellationToken)
         {
             // Проверка tester branch
             string repoLink = ProgramVariables.gitHubRepoLink;
@@ -121,7 +128,7 @@ namespace Snowbreak_Rusifikator.Models
 
             // Проверка обновлений  // установка в \game\Game\Content\Paks\~mods
             HttpClient client = UseHttpClient(Client);
-            List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, repoLink, ProgramVariables.gitHubToken);
+            List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, repoLink, ProgramVariables.gitHubToken, cancellationToken);
             // Сортировка
             repositoryFiles = SortingRepositoryFiles(repositoryFiles);
             if (repositoryFiles.Count == 0) { throw new Exception("FileList Empty!"); } // сделать выдачу статуса "Репозиторий пуст" и завершать функцию
@@ -255,7 +262,7 @@ namespace Snowbreak_Rusifikator.Models
         }
 
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
-        static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token)
+        static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token, CancellationToken cancellationToken)
         {
             // добавить проверку на наличие интернет соединения, и завершать функцию со статусом "Нет соединения"
             JsonSerializerOptions options = new()
@@ -263,18 +270,20 @@ namespace Snowbreak_Rusifikator.Models
                 TypeInfoResolver = RepositoryFileContext.Default
             };
             List<RepositoryFile> repositoryFiles = [];
+            //urlLink = "localhost:443";
             try
             {
                 using HttpResponseMessage response = await client.GetAsync(urlLink);
                 if (response.IsSuccessStatusCode)
                 {
-                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options);
+                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
                 if (repositoryFiles == null || repositoryFiles.Count == 0)
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", parameter: token);
                     using HttpResponseMessage secondResponse = await client.GetAsync(urlLink);
-                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options);
+                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options, cancellationToken);
                 }
 
                 if (!response.IsSuccessStatusCode)
@@ -288,10 +297,26 @@ namespace Snowbreak_Rusifikator.Models
                     throw new Exception();
                 }
             }
+            catch (NotSupportedException e)
+            {
+                Trace.WriteLine("\nException Caught!");
+                Trace.WriteLine("Message :{0} ", e.Message);
+                programStatus = $"Message :${e.Message}";
+            }
             catch (HttpRequestException e)
             {
-                Console.WriteLine("\nException Caught!");
-                Console.WriteLine("Message :{0} ", e.Message);
+                //OperationCanceledException
+                Trace.WriteLine("\nException Caught!");
+                Trace.WriteLine("Message :{0} ", e.Message);
+                programStatus = $"Message :${e.Message}";
+                //cancellationToken.ThrowIfCancellationRequested;
+                //throw new OperationCanceledException();
+            }
+            catch (OperationCanceledException e)
+            {
+                Trace.WriteLine("\nCanceled!");
+                Trace.WriteLine("Message :{0} ", e.Message);
+                programStatus = $"Message :${e.Message}";
             }
             return repositoryFiles;
             //return repositoryFiles ?? new();
@@ -322,6 +347,7 @@ namespace Snowbreak_Rusifikator.Models
         static async Task<bool> CheckFolderStructure()
         {
             // проверка на Steam-версию игры
+            // "game\\Game\\Binaries\\Win64\\Game.exe"
             bool value = false;
             string nonSteamGameExePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Binaries\\Win64\\Game.exe";
             string steamGameExePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Binaries\\Win64\\Game.exe";
@@ -348,19 +374,20 @@ namespace Snowbreak_Rusifikator.Models
                 using Stream s = await client.GetStreamAsync(fileList[0].DownloadUrl);
                 using FileStream fs = new(savePath, FileMode.Create);
                 await s.CopyToAsync(fs);
+                Trace.WriteLine("Файл загружен и сохранён.");
+                programStatus = "Файл загружен и сохранён.";
             }
             catch(Exception e)
             {
-                Console.WriteLine("\nException Caught!");
-                Console.WriteLine("Message :{0} ", e.Message);
+                Trace.WriteLine("\nException Caught!");
+                Trace.WriteLine("Message :{0} ", e.Message);
+                programStatus = $"Message :${e.Message}";
             }
             savePath = string.Empty;
             programConfig.fileName = fileList[0].Name;
             programConfig.sha = fileList[0].Sha;
             fileList.Clear();
             await SaveProgramConfig(programConfig, programConfigPath);
-            Trace.WriteLine("Файл загружен и сохранён.");
-            programStatus = "Файл загружен и сохранён.";
         }
         static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath, bool steam = false)
         {
