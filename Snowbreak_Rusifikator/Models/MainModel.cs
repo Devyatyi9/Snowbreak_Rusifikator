@@ -349,11 +349,11 @@ namespace Snowbreak_Rusifikator.Models
             // проверка на Steam-версию игры
             // "game\\Game\\Binaries\\Win64\\Game.exe"
             bool value = false;
-            string nonSteamGameExePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Binaries\\Win64\\Game.exe";
-            string steamGameExePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Binaries\\Win64\\Game.exe";
-            if (File.Exists(nonSteamGameExePath) && new FileInfo(nonSteamGameExePath).Length > 0)
+            string nonSteamEngineDirPath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Engine";
+            string steamEngineDirPath = programConfig.gamePath + Path.DirectorySeparatorChar + "Engine";
+            if (Directory.Exists(nonSteamEngineDirPath))
             { value = false; }
-            else if (File.Exists(steamGameExePath) && new FileInfo(steamGameExePath).Length > 0)
+            else if (Directory.Exists(steamEngineDirPath))
             { value = true; }
             return value;
         }
