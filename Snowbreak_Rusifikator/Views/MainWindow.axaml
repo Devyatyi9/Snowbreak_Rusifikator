@@ -57,7 +57,7 @@
         <!---->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
           <Button Name="installRemoveButton" Command="{Binding InstallRemoveCommand}" IsEnabled="{Binding IsInstallRemoveButtonEnabled}" Margin="4" Cursor="Hand" Content="{Binding InstallRemoveButtonContent}"/>
-          <Button Name="checkInstallUpdatesButton" Command="{Binding CheckInstallUpdatesCommand}" IsEnabled="{Binding IsCheckInstallUpdatesButtonEnabled}" Margin="4" Cursor="Hand" Content="Скачать обновление"/>
+          <Button Name="checkInstallUpdatesButton" Command="{Binding CheckInstallUpdatesCommand}" IsEnabled="{Binding IsCheckInstallUpdatesButtonEnabled}" Margin="4" Cursor="Hand" Content="Проверить обновления"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="1">
           <Button Name="startLauncherButton" Command="{Binding StartLauncherCommand}" IsEnabled="{Binding IsStartLauncherButtonEnabled}" Margin="4" Cursor="Hand" Content="Запустить лаунчер"/>

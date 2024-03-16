@@ -9,7 +9,6 @@ namespace Snowbreak_Rusifikator
 {
     public interface IConfigs
     {
-        //\game\Game\Content\Paks
         public class ProgramConfig : DefaultJsonTypeInfoResolver
         {
             public string gamePath { get; set; }

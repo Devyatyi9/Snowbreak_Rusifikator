@@ -4,11 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
+using System.Xml.Linq;
+using System.Text.Json.Serialization.Metadata;
 
-namespace Snowbreak_Rusifikator
+namespace Snowbreak_Rusifikator.Models
 {
-    public record class RepositoryFile(
-        [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("sha")] string Sha,
-        [property: JsonPropertyName("download_url")] Uri DownloadUrl);
+    public class RepositoryFile : DefaultJsonTypeInfoResolver
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+        [JsonPropertyName("sha")]
+        public string Sha { get; set; }
+        [JsonPropertyName("download_url ")]
+        public Uri DownloadUrl { get; set; }
+    }
 }

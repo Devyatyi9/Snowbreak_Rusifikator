@@ -15,9 +15,10 @@ using Avalonia.Platform.Storage;
 using Snowbreak_Rusifikator.ViewModels;
 using Avalonia.Data;
 using System.Text.Json.Serialization;
-using static Snowbreak_Rusifikator.RepositoryFile;
+using static Snowbreak_Rusifikator.Models.RepositoryFile;
 using System.Data;
 using System.Threading;
+using System.Xml.Linq;
 
 namespace Snowbreak_Rusifikator.Models
 {
@@ -117,18 +118,12 @@ namespace Snowbreak_Rusifikator.Models
 
         static async Task RunCheckUpdatesAsync(ProgramConfig programConfig, string programConfigPath, CancellationToken cancellationToken)
         {
-            // Проверка tester branch
-            string repoLink = ProgramVariables.gitHubRepoLink;
             Debug.WriteLine("MainModel.isTester: " + MainModel.isTester);
             Debug.WriteLine("programConfig.isTester: " + programConfig.isTester);
-            if (programConfig.isTester == true)
-            {
-                repoLink = ProgramVariables.gitHubRepoLink + ProgramVariables.gitHubTesterBranch;
-            }
 
             // Проверка обновлений  // установка в \game\Game\Content\Paks\~mods
             HttpClient client = UseHttpClient(Client);
-            List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, repoLink, ProgramVariables.gitHubToken, cancellationToken);
+            List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, programConfig.isTester, cancellationToken);
             // Сортировка
             repositoryFiles = SortingRepositoryFiles(repositoryFiles);
             if (repositoryFiles.Count == 0) { throw new Exception("FileList Empty!"); } // сделать выдачу статуса "Репозиторий пуст" и завершать функцию
@@ -262,39 +257,67 @@ namespace Snowbreak_Rusifikator.Models
         }
 
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
-        static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token, CancellationToken cancellationToken)
+        static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, bool isTester, CancellationToken cancellationToken)
         {
+            List<RepositoryFile> repositoryFiles = [];
+            Random rnd = new();
+            List<string> listLinks = [.. ProgramVariables.arrayLinks];
+
+            JsonSerializerOptions gitLabOptions = new()
+            {
+                TypeInfoResolver = RepositoryFileGitLabContext.Default
+            };
             // добавить проверку на наличие интернет соединения, и завершать функцию со статусом "Нет соединения"
             JsonSerializerOptions options = new()
             {
                 TypeInfoResolver = RepositoryFileContext.Default
             };
-            List<RepositoryFile> repositoryFiles = [];
             //urlLink = "localhost:443";
             try
             {
-                using HttpResponseMessage response = await client.GetAsync(urlLink);
+                while((repositoryFiles == null || repositoryFiles.Count == 0) || listLinks.Count > 0) {
+                    int rndValue = rnd.Next(listLinks.Count);
+                    string urlLink = listLinks[rndValue];
+                    listLinks.RemoveAt(rndValue);
+                    if (isTester == true)
+                    {
+                        urlLink += ProgramVariables.testerBranch;
+                    }
+                    using HttpResponseMessage response = await client.GetAsync(urlLink);
                 if (response.IsSuccessStatusCode)
                 {
-                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options, cancellationToken);
-                    cancellationToken.ThrowIfCancellationRequested();
-                }
-                if (repositoryFiles == null || repositoryFiles.Count == 0)
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", parameter: token);
-                    using HttpResponseMessage secondResponse = await client.GetAsync(urlLink);
-                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options, cancellationToken);
-                }
+                    if (urlLink.Contains("gitlab"))
+                    {
+                            List<RepositoryFileGitLab> repositoryFilesGitLab = await JsonSerializer.DeserializeAsync<List<RepositoryFileGitLab>>(response.Content.ReadAsStream(), gitLabOptions);
+                            //for (int i = 0; i < repositoryFilesGitLab.Count;)
+                            foreach (RepositoryFileGitLab repositoryFile in repositoryFilesGitLab)
+                            {
+                                // gitLabRepoLink (urlLink)
+                                // tree/
+                                //urlLink = urlLink.Split(["tree/"])
+                                string strlLink = "https://gitlab.com/api/v4/projects/55335200/repository/files/" + repositoryFile.Path + "/raw";
+                                if (isTester) { strlLink += ProgramVariables.testerBranch; }
+                                Uri uriLink = new Uri(strlLink);
 
+                                RepositoryFile repositoryObject = new()
+                                {
+                                    Name = repositoryFile.Name,
+                                    Sha = repositoryFile.Id,
+                                    DownloadUrl = uriLink
+                                };
+                                repositoryFiles.Add(repositoryObject);
+                            }
+                            if (repositoryFiles.Count > 0) { break; }
+                    } else {
+                        repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options);
+                            if (repositoryFiles.Count > 0) { break; }
+                        }
+                }
                 if (!response.IsSuccessStatusCode)
                 {
                     // cancel update function
                     Debug.WriteLine("Critical Error!");
                 }
-
-                if (repositoryFiles == null)
-                {
-                    throw new Exception();
                 }
             }
             catch (NotSupportedException e)
