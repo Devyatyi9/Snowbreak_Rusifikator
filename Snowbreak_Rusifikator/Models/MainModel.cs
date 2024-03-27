@@ -125,17 +125,21 @@ namespace Snowbreak_Rusifikator.Models
             HttpClient client = UseHttpClient(Client);
             List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, programConfig.isTester, cancellationToken);
             // Сортировка
-            repositoryFiles = SortingRepositoryFiles(repositoryFiles);
-            if (repositoryFiles.Count == 0) { throw new Exception("FileList Empty!"); } // сделать выдачу статуса "Репозиторий пуст" и завершать функцию
-            // Проверка sha: если запись пуста или она отличается
-            if ((programConfig.sha == "") || (programConfig.sha != repositoryFiles[0].Sha))
+            repositoryFiles = SortingRepositoryFiles(repositoryFiles); // сделать выдачу статуса "Репозиторий пуст" и завершать функцию
+            if (repositoryFiles.Count > 0)
             {
-                bool steam = await CheckFolderStructure();
-                // Функция скачивания и сохранения
-                await DownloadAndSaveFileAsync(repositoryFiles, programConfig, client, programConfigPath, steam);
-            }
-            else { Trace.WriteLine("Нет обновлений."); programStatus = "Нет обновлений."; }
+                // Проверка sha: если запись пуста или она отличается
+                if ((programConfig.sha == "") || (programConfig.sha != repositoryFiles[0].Sha))
+                {
+                    bool steam = await CheckFolderStructure();
+                    // Функция скачивания и сохранения
+                    await DownloadAndSaveFileAsync(repositoryFiles, programConfig, client, programConfigPath, steam);
+                }
+                else { Trace.WriteLine("Нет обновлений."); programStatus = "Нет обновлений."; }
+            } else { Trace.WriteLine("FileList Empty!"); }
         }
+
+        static async Task InstallUpdate() { }
 
         static async Task<ProgramConfig> CreateLoadProgramConfig(string programConfigPath)
         {
@@ -289,7 +293,6 @@ namespace Snowbreak_Rusifikator.Models
                     if (urlLink.Contains("gitlab"))
                     {
                             List<RepositoryFileGitLab> repositoryFilesGitLab = await JsonSerializer.DeserializeAsync<List<RepositoryFileGitLab>>(response.Content.ReadAsStream(), gitLabOptions);
-                            //for (int i = 0; i < repositoryFilesGitLab.Count;)
                             foreach (RepositoryFileGitLab repositoryFile in repositoryFilesGitLab)
                             {
                                 // gitLabRepoLink (urlLink)
@@ -297,7 +300,7 @@ namespace Snowbreak_Rusifikator.Models
                                 //urlLink = urlLink.Split(["tree/"])
                                 string strlLink = "https://gitlab.com/api/v4/projects/55335200/repository/files/" + repositoryFile.Path + "/raw";
                                 if (isTester) { strlLink += ProgramVariables.testerBranch; }
-                                Uri uriLink = new Uri(strlLink);
+                                Uri uriLink = new(strlLink);
 
                                 RepositoryFile repositoryObject = new()
                                 {
@@ -320,24 +323,9 @@ namespace Snowbreak_Rusifikator.Models
                 }
                 }
             }
-            catch (NotSupportedException e)
+            catch (Exception e)
             {
                 Trace.WriteLine("\nException Caught!");
-                Trace.WriteLine("Message :{0} ", e.Message);
-                programStatus = $"Message :${e.Message}";
-            }
-            catch (HttpRequestException e)
-            {
-                //OperationCanceledException
-                Trace.WriteLine("\nException Caught!");
-                Trace.WriteLine("Message :{0} ", e.Message);
-                programStatus = $"Message :${e.Message}";
-                //cancellationToken.ThrowIfCancellationRequested;
-                //throw new OperationCanceledException();
-            }
-            catch (OperationCanceledException e)
-            {
-                Trace.WriteLine("\nCanceled!");
                 Trace.WriteLine("Message :{0} ", e.Message);
                 programStatus = $"Message :${e.Message}";
             }

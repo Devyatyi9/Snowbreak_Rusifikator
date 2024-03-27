@@ -140,13 +140,24 @@ public partial class MainViewModel : ViewModelBase
         {
             // Install
             localTask = await Models.MainModel.StartUpdate(s_cts.Token);
-            InstallRemoveButtonContent = "Удалить перевод";
-            if (localTask.IsCompletedSuccessfully)
+            if (Models.MainModel.programConfig.fileName == "")
             {
-                ChangeStatus(1000);
-                await Task.Delay(300);
-                IsCheckInstallUpdatesButtonEnabled = true;
-                IsInstallRemoveButtonEnabled = true;
+                if (localTask.IsCompletedSuccessfully)
+                {
+                    ChangeStatus(1000);
+                    await Task.Delay(300);
+                    IsInstallRemoveButtonEnabled = true;
+                }
+            } else
+            {
+                InstallRemoveButtonContent = "Удалить перевод";
+                if (localTask.IsCompletedSuccessfully)
+                {
+                    ChangeStatus(1000);
+                    await Task.Delay(300);
+                    IsCheckInstallUpdatesButtonEnabled = true;
+                    IsInstallRemoveButtonEnabled = true;
+                }
             }
         }
     }
