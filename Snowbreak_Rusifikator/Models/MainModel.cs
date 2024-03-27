@@ -276,10 +276,11 @@ namespace Snowbreak_Rusifikator.Models
             {
                 TypeInfoResolver = RepositoryFileContext.Default
             };
-            //urlLink = "localhost:443";
             try
             {
-                while((repositoryFiles == null || repositoryFiles.Count == 0) || listLinks.Count > 0) {
+                //listLinks.Clear();
+                //listLinks[0] = "http://localhost:443/test";
+                while ((repositoryFiles == null || repositoryFiles.Count == 0) || listLinks.Count > 0) {
                     int rndValue = rnd.Next(listLinks.Count);
                     string urlLink = listLinks[rndValue];
                     listLinks.RemoveAt(rndValue);
@@ -318,8 +319,11 @@ namespace Snowbreak_Rusifikator.Models
                 }
                 if (!response.IsSuccessStatusCode)
                 {
-                    // cancel update function
-                    Debug.WriteLine("Critical Error!");
+                    Trace.WriteLine("Error response!");
+                    Trace.WriteLine("Status code: " + response.StatusCode);
+                    Trace.WriteLine("At: " + urlLink);
+                    Trace.WriteLine("Content: " + response.Content);
+                    programStatus = $"Error response! ${response.StatusCode}";
                 }
                 }
             }
@@ -328,14 +332,9 @@ namespace Snowbreak_Rusifikator.Models
                 Trace.WriteLine("\nException Caught!");
                 Trace.WriteLine("Message :{0} ", e.Message);
                 programStatus = $"Message :${e.Message}";
+                repositoryFiles = [];
             }
             return repositoryFiles;
-            //return repositoryFiles ?? new();
-            //var json = await client.GetStringAsync("https://api.github.com/orgs/dotnet/repos");
-            //Console.Write(json);
-            //var repositoryFiles = await ProcessRepositoriesAsync(client);
-            //foreach (var repo in repositoryFiles)
-            //    Console.Write(repo.Name);
         }
 
         static List<RepositoryFile> SortingRepositoryFiles(List<RepositoryFile> oldFileList)

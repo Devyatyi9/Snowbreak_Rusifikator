@@ -93,7 +93,7 @@ public partial class MainViewModel : ViewModelBase
         if (folder.Count == 1)
         {
             Task localTask = await MainModel.GetGameFolder(folder);
-            if (localTask.IsCompletedSuccessfully)
+            if (localTask.IsCompleted)
             {
                 await ChangeStatus(1000);
                 if (Models.MainModel.programConfig.gamePath != "")
@@ -129,7 +129,7 @@ public partial class MainViewModel : ViewModelBase
             // Remove
             localTask = await Models.MainModel.RemoveFile();
             InstallRemoveButtonContent = "Установить перевод";
-            if (localTask.IsCompletedSuccessfully)
+            if (localTask.IsCompleted)
             {
                 ChangeStatus(1000);
                 await Task.Delay(300);
@@ -142,16 +142,16 @@ public partial class MainViewModel : ViewModelBase
             localTask = await Models.MainModel.StartUpdate(s_cts.Token);
             if (Models.MainModel.programConfig.fileName == "")
             {
-                if (localTask.IsCompletedSuccessfully)
+                if (localTask.IsCompleted)
                 {
-                    ChangeStatus(1000);
+                    ChangeStatus(2700);
                     await Task.Delay(300);
                     IsInstallRemoveButtonEnabled = true;
                 }
             } else
             {
                 InstallRemoveButtonContent = "Удалить перевод";
-                if (localTask.IsCompletedSuccessfully)
+                if (localTask.IsCompleted)
                 {
                     ChangeStatus(1000);
                     await Task.Delay(300);
@@ -169,9 +169,9 @@ public partial class MainViewModel : ViewModelBase
         IsInstallRemoveButtonEnabled = false;
         Status = "В процессе...";
         Task? localTask = await Models.MainModel.StartUpdate(s_cts.Token);
-        if (localTask.IsCompletedSuccessfully)
+        if (localTask.IsCompleted)
         {
-            await ChangeStatus(1000);
+            await ChangeStatus(1700);
             IsCheckInstallUpdatesButtonEnabled = true;
             IsInstallRemoveButtonEnabled = true;
         }
@@ -185,6 +185,7 @@ public partial class MainViewModel : ViewModelBase
         Models.MainModel.RunLauncher();
         await Task.Delay(300);
         IsStartLauncherButtonEnabled = true;
+        Environment.Exit(0);
     }
 
     [RelayCommand]
@@ -195,17 +196,17 @@ public partial class MainViewModel : ViewModelBase
         Models.MainModel.isTester = IsTesterCheckboxChecked;
         Task? localTask = null;
         localTask = await Models.MainModel.ChangeTesterState();
-        if (localTask.IsCompletedSuccessfully)
+        if (localTask.IsCompleted)
         {
             await ChangeStatus(700);
             if ((Models.MainModel.programConfig.gamePath != "") && (IsCheckInstallUpdatesButtonEnabled == true))
             {
-                if (localTask.IsCompletedSuccessfully)
+                if (localTask.IsCompleted)
                 {
                     IsCheckInstallUpdatesButtonEnabled = false;
                     IsInstallRemoveButtonEnabled = false;
                     localTask = await Models.MainModel.StartUpdate(s_cts.Token);
-                    if (localTask.IsCompletedSuccessfully)
+                    if (localTask.IsCompleted)
                     {
                         await ChangeStatus(1000);
                         IsCheckInstallUpdatesButtonEnabled = true;
