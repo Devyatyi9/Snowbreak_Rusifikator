@@ -1,4 +1,4 @@
-## Установщик перевода для игры Snowbreak: Containment Zone
+## Установщик русского перевода для игры Snowbreak: Containment Zone
 Ссылки на переводчиков:
 - https://bit.ly/Ru_Snow
 - https://t.me/SnowbreakRU
