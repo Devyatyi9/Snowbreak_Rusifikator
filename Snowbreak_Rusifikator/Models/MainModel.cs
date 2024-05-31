@@ -302,7 +302,8 @@ namespace Snowbreak_Rusifikator.Models
                                 string strlLink = "https://gitlab.com/api/v4/projects/55335200/repository/files/" + repositoryFile.Path + "/raw";
                                 if (isTester) { strlLink += ProgramVariables.testerBranch; }
                                 Uri uriLink = new(strlLink);
-
+                                
+                                Debug.WriteLine("request: " + uriLink);
                                 RepositoryFile repositoryObject = new()
                                 {
                                     Name = repositoryFile.Name,
@@ -311,10 +312,15 @@ namespace Snowbreak_Rusifikator.Models
                                 };
                                 repositoryFiles.Add(repositoryObject);
                             }
-                            if (repositoryFiles.Count > 0) { break; }
+                            if (repositoryFiles.Count > 0) { 
+                                foreach (var repositoryFile in repositoryFiles) { Debug.WriteLine("Link: " + repositoryFile.DownloadUrl); }
+                                break; }
                     } else {
+                            Debug.WriteLine("request: " + urlLink);
                         repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options);
-                            if (repositoryFiles.Count > 0) { break; }
+                            if (repositoryFiles.Count > 0) {
+                                foreach (var repositoryFile in repositoryFiles) { Debug.WriteLine("Link: " + repositoryFile.DownloadUrl); }
+                                break; }
                         }
                 }
                 if (!response.IsSuccessStatusCode)
@@ -348,6 +354,11 @@ namespace Snowbreak_Rusifikator.Models
                     if (fileExt == ".pak")
                     {
                         newFileList.Add(element);
+                        //element.DownloadUrl
+                        if (element.DownloadUrl != null)
+                        {
+                            Debug.WriteLine(element.DownloadUrl);
+                        }
                     }
                 }
             }
@@ -393,11 +404,14 @@ namespace Snowbreak_Rusifikator.Models
                 Trace.WriteLine("Message :{0} ", e.Message);
                 programStatus = $"Message :${e.Message}";
             }
-            savePath = string.Empty;
-            programConfig.fileName = fileList[0].Name;
-            programConfig.sha = fileList[0].Sha;
+            if (File.Exists(savePath))
+            {
+                programConfig.fileName = fileList[0].Name;
+                programConfig.sha = fileList[0].Sha;
+                await SaveProgramConfig(programConfig, programConfigPath);
+            }
             fileList.Clear();
-            await SaveProgramConfig(programConfig, programConfigPath);
+            savePath = string.Empty;
         }
         static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath, bool steam = false)
         {
