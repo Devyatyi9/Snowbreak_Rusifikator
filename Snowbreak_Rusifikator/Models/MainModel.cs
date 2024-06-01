@@ -263,59 +263,33 @@ namespace Snowbreak_Rusifikator.Models
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
         static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, bool isTester, CancellationToken cancellationToken)
         {
-            List<RepositoryFile> repositoryFiles = [];
-            Random rnd = new();
-            List<string> listLinks = [.. ProgramVariables.arrayLinks];
-
-            JsonSerializerOptions gitLabOptions = new()
-            {
-                TypeInfoResolver = RepositoryFileGitLabContext.Default
-            };
+            string urlLink = ProgramVariables.gitHubRepoLink;
+            string token = ProgramVariables.gitHubToken;
             // добавить проверку на наличие интернет соединения, и завершать функцию со статусом "Нет соединения"
             JsonSerializerOptions options = new()
             {
                 TypeInfoResolver = RepositoryFileContext.Default
             };
+
+            List<RepositoryFile> repositoryFiles = [];
+            //urlLink = "localhost:443";
+            if (isTester == true)
+            {
+                urlLink += ProgramVariables.testerBranch;
+            }
             try
             {
-                //listLinks.Clear();
-                //listLinks[0] = "http://localhost:443/test";
-                while ((repositoryFiles == null || repositoryFiles.Count == 0) || listLinks.Count > 0) {
-                    int rndValue = rnd.Next(listLinks.Count);
-                    string urlLink = listLinks[rndValue];
-                    listLinks.RemoveAt(rndValue);
-                    if (isTester == true)
-                    {
-                        urlLink += ProgramVariables.testerBranch;
-                    }
-                    using HttpResponseMessage response = await client.GetAsync(urlLink);
+                using HttpResponseMessage response = await client.GetAsync(urlLink);
                 if (response.IsSuccessStatusCode)
                 {
-                    if (urlLink.Contains("gitlab"))
-                    {
-                            List<RepositoryFileGitLab> repositoryFilesGitLab = await JsonSerializer.DeserializeAsync<List<RepositoryFileGitLab>>(response.Content.ReadAsStream(), gitLabOptions);
-                            foreach (RepositoryFileGitLab repositoryFile in repositoryFilesGitLab)
-                            {
-                                // gitLabRepoLink (urlLink)
-                                // tree/
-                                //urlLink = urlLink.Split(["tree/"])
-                                string strlLink = "https://gitlab.com/api/v4/projects/55335200/repository/files/" + repositoryFile.Path + "/raw";
-                                if (isTester) { strlLink += ProgramVariables.testerBranch; }
-                                Uri uriLink = new(strlLink);
-
-                                RepositoryFile repositoryObject = new()
-                                {
-                                    Name = repositoryFile.Name,
-                                    Sha = repositoryFile.Id,
-                                    DownloadUrl = uriLink
-                                };
-                                repositoryFiles.Add(repositoryObject);
-                            }
-                            if (repositoryFiles.Count > 0) { break; }
-                    } else {
-                        repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options);
-                            if (repositoryFiles.Count > 0) { break; }
-                        }
+                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options, cancellationToken);
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+                if (repositoryFiles == null || repositoryFiles.Count == 0)
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", parameter: token);
+                    using HttpResponseMessage secondResponse = await client.GetAsync(urlLink);
+                    repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options, cancellationToken);
                 }
                 if (!response.IsSuccessStatusCode)
                 {
@@ -324,7 +298,6 @@ namespace Snowbreak_Rusifikator.Models
                     Trace.WriteLine("At: " + urlLink);
                     Trace.WriteLine("Content: " + response.Content);
                     programStatus = $"Error response! ${response.StatusCode}";
-                }
                 }
             }
             catch (Exception e)
@@ -382,10 +355,13 @@ namespace Snowbreak_Rusifikator.Models
             {
                 _ = Directory.CreateDirectory(path: Path.GetDirectoryName(savePath));
                 using Stream s = await client.GetStreamAsync(fileList[0].DownloadUrl);
-                using FileStream fs = new(savePath, FileMode.Create);
-                await s.CopyToAsync(fs);
-                Trace.WriteLine("Файл загружен и сохранён.");
-                programStatus = "Файл загружен и сохранён.";
+                if (s.CanRead && s != null)
+                {
+                    using FileStream fs = new(savePath, FileMode.Create);
+                    await s.CopyToAsync(fs);
+                    Trace.WriteLine("Файл загружен и сохранён.");
+                    programStatus = "Файл загружен и сохранён.";
+                }
             }
             catch(Exception e)
             {
@@ -393,11 +369,14 @@ namespace Snowbreak_Rusifikator.Models
                 Trace.WriteLine("Message :{0} ", e.Message);
                 programStatus = $"Message :${e.Message}";
             }
-            savePath = string.Empty;
-            programConfig.fileName = fileList[0].Name;
-            programConfig.sha = fileList[0].Sha;
+            if (File.Exists(savePath))
+            {
+                programConfig.fileName = fileList[0].Name;
+                programConfig.sha = fileList[0].Sha;
+                await SaveProgramConfig(programConfig, programConfigPath);
+            }
             fileList.Clear();
-            await SaveProgramConfig(programConfig, programConfigPath);
+            savePath = string.Empty;
         }
         static Task InternalRemoveFile(IConfigs.ProgramConfig programConfig, string programConfigPath, bool steam = false)
         {

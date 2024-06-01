@@ -11,13 +11,11 @@ namespace Snowbreak_Rusifikator
     {
         //GitHub
         public const string gitHubRepoLink = "https://api.github.com/repos/Devyatyi9/Snowbreak_RU_translation/contents/";
-        //Codeberg
-        public const string codebergRepoLink = "https://codeberg.org/api/v1/repos/Devyatyi9/Snowbreak_RU_translation/contents/";
-        //GitLab
-        public const string gitLabRepoLink = "https://gitlab.com/api/v4/projects/55335200/repository/tree/";
-        //
         public const string testerBranch = "?ref=test"; //public static string mainBranch = "?ref=main";
-
-        public static string[] arrayLinks = [gitHubRepoLink, codebergRepoLink, gitLabRepoLink];
+        public const string gitHubToken = GitHubToken.token;
+        //Codeberg
+        public const string codebergRepoLink = "";
+        //public const string gitLabToken = "";
+        public const string codebergTesterBranch = "?ref=test";
     }
 }

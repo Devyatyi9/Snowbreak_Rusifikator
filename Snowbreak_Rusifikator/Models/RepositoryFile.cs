@@ -9,13 +9,8 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Snowbreak_Rusifikator.Models
 {
-    public class RepositoryFile : DefaultJsonTypeInfoResolver
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; set; }
-        [JsonPropertyName("sha")]
-        public string Sha { get; set; }
-        [JsonPropertyName("download_url ")]
-        public Uri DownloadUrl { get; set; }
-    }
+    public record class RepositoryFile(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("sha")] string Sha,
+        [property: JsonPropertyName("download_url")] Uri DownloadUrl);
 }
