@@ -121,7 +121,7 @@ namespace Snowbreak_Rusifikator.Models
 
             // Проверка обновлений  // установка в \game\Game\Content\Paks\~mods
             HttpClient client = UseHttpClient(Client);
-            List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, repoLink, ProgramVariables.gitHubToken);
+            List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, repoLink);
             // Сортировка
             repositoryFiles = SortingRepositoryFiles(repositoryFiles);
             if (repositoryFiles.Count == 0) { throw new Exception("FileList Empty!"); } // сделать выдачу статуса "Репозиторий пуст" и завершать функцию
@@ -255,7 +255,7 @@ namespace Snowbreak_Rusifikator.Models
         }
 
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
-        static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink, string token)
+        static async Task<List<RepositoryFile>> ProcessRepositoriesAsync(HttpClient client, string urlLink)
         {
             // добавить проверку на наличие интернет соединения, и завершать функцию со статусом "Нет соединения"
             var options = new JsonSerializerOptions
@@ -267,12 +267,6 @@ namespace Snowbreak_Rusifikator.Models
             if (response.IsSuccessStatusCode)
             {
                 repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(response.Content.ReadAsStream(), options); // options // RepositoryFileContext.Default.RepositoryFile
-            }
-            if (repositoryFiles == null || repositoryFiles.Count == 0)
-            {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", parameter: token);
-                using HttpResponseMessage secondResponse = await client.GetAsync(urlLink);
-                repositoryFiles = await JsonSerializer.DeserializeAsync<List<RepositoryFile>>(secondResponse.Content.ReadAsStream(), options);
             }
 
             if (!response.IsSuccessStatusCode)
