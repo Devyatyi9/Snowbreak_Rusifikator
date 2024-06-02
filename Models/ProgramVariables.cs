@@ -12,7 +12,6 @@ namespace Snowbreak_Rusifikator
         //GitHub
         public const string gitHubRepoLink = "https://api.github.com/repos/Devyatyi9/Snowbreak_RU_translation/contents/";
         public const string gitHubTesterBranch = "?ref=test"; //public static string mainBranch = "?ref=main";
-        public const string gitHubToken = GitHubToken.token;
         //Codeberg
         public const string codebergRepoLink = "";
         //public const string gitLabToken = "";
