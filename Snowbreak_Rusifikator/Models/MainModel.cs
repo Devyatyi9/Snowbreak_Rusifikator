@@ -28,7 +28,7 @@ namespace Snowbreak_Rusifikator.Models
         static protected string? programConfigPath;
         static public ProgramConfig? programConfig;
         static public string programStatus { get; set; } = string.Empty;
-        static readonly HttpClient Client = new();
+        //static readonly HttpClient Client = new();
 
         [SupportedOSPlatform("windows")]
         public static async Task<Task> StartUpdate(CancellationToken cancellationToken = default)
@@ -122,7 +122,12 @@ namespace Snowbreak_Rusifikator.Models
             Debug.WriteLine("programConfig.isTester: " + programConfig.isTester);
 
             // Проверка обновлений  // установка в \game\Game\Content\Paks\~mods
-            HttpClient client = UseHttpClient(Client);
+            //HttpClientHandler httpClientHandler = new();
+            //httpClientHandler.UseProxy = false;
+            //HttpClient client = new(httpClientHandler);
+
+            HttpClient client = UseHttpClient();
+            //client.Timeout = TimeSpan.FromSeconds(40);
             List<RepositoryFile> repositoryFiles = await ProcessRepositoriesAsync(client, programConfig.isTester, cancellationToken);
             // Сортировка
             repositoryFiles = SortingRepositoryFiles(repositoryFiles); // сделать выдачу статуса "Репозиторий пуст" и завершать функцию
@@ -247,17 +252,19 @@ namespace Snowbreak_Rusifikator.Models
             return Task.CompletedTask;
         }
 
-        static HttpClient UseHttpClient(HttpClient Client)
+        static HttpClient UseHttpClient()
         {
             // GitHub REST API limit is 60 requests per hour for unauthenticated requests
             // User Access Token Requests are limited to 5,000 requests per hour
             // https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api
-            //HttpClient client = new();
-            Client.DefaultRequestHeaders.Accept.Clear();
-            Client.DefaultRequestHeaders.Accept.Add(
+            HttpClientHandler httpClientHandler = new();
+            httpClientHandler.UseProxy = false;
+            HttpClient client = new(httpClientHandler);
+            client.DefaultRequestHeaders.Accept.Clear();
+            client.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
-            Client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
-            return Client;
+            client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+            return client;
         }
 
         // https://learn.microsoft.com/dotnet/fundamentals/networking/http/httpclient-guidelines#recommended-use
