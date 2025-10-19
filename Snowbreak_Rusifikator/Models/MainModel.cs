@@ -121,7 +121,7 @@ namespace Snowbreak_Rusifikator.Models
             Debug.WriteLine("MainModel.isTester: " + MainModel.isTester);
             Debug.WriteLine("programConfig.isTester: " + programConfig.isTester);
 
-            // Проверка обновлений  // установка в \game\Game\Content\Paks\~mods
+            // Проверка обновлений  // установка в \game\Game\Content\Paks\mods
             //HttpClientHandler httpClientHandler = new();
             //httpClientHandler.UseProxy = false;
             //HttpClient client = new(httpClientHandler);
@@ -201,7 +201,7 @@ namespace Snowbreak_Rusifikator.Models
 
         static ProgramConfig CheckIsFileExist(ProgramConfig programConfig) 
         {
-            string filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
+            string filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\mods\\" + programConfig.fileName;
             bool isExist = File.Exists(filePath);
             if (!isExist) 
             {
@@ -353,10 +353,10 @@ namespace Snowbreak_Rusifikator.Models
             string savePath;
             if (!steam)
             {
-                savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + fileList[0].Name;
+                savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\mods\\" + fileList[0].Name;
             } else 
             {
-                savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Content\\Paks\\~mods\\" + fileList[0].Name;
+                savePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Content\\Paks\\mods\\" + fileList[0].Name;
             }
             try
             {
@@ -390,11 +390,11 @@ namespace Snowbreak_Rusifikator.Models
             string filePath;
             if (!steam)
             {
-                filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
+                filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "game\\Game\\Content\\Paks\\mods\\" + programConfig.fileName;
             }
             else
             {
-                filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Content\\Paks\\~mods\\" + programConfig.fileName;
+                filePath = programConfig.gamePath + Path.DirectorySeparatorChar + "Game\\Content\\Paks\\mods\\" + programConfig.fileName;
             }
             File.Delete(filePath);
             programConfig.fileName = "";
